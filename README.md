@@ -7,11 +7,11 @@ A meal-planning web app for Nosh, a charity helping households on tight budgets 
 ## Prerequisites
 
 - [uv](https://docs.astral.sh/uv/) (installs and manages Python for you)
-- Node.js 20+ and npm
+- Node.js 22.12+ (or 20.19+) and npm
 
 ## Getting started
 
-> Work in progress: steps will be filled in as the backend and frontend are added.
+Run the backend and frontend in two terminals.
 
 ### Backend (FastAPI)
 
@@ -23,6 +23,14 @@ uv run uvicorn app.main:app --reload
 
 API: http://localhost:8000 · Docs: http://localhost:8000/docs
 
+The SQLite database (`backend/nosh.db`) is created automatically on startup.
+
+Run tests:
+
+```bash
+uv run pytest
+```
+
 ### Frontend (React + Vite)
 
 ```bash
@@ -31,8 +39,8 @@ npm install
 npm run dev
 ```
 
-App: http://localhost:5173
+App: http://localhost:5173 (requests to `/api` are proxied to the backend).
 
 ## Data
 
-SQLite database, seeded with the starter recipes from `Project Nosh - Candidate_Pack.json` on first run.
+SQLite database. Starter recipes from `Project Nosh - Candidate_Pack.json` will be seeded on first run (not yet implemented).

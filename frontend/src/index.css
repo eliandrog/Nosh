@@ -1,0 +1,24 @@
+:root {
+  --nosh-green: #62cc9b;
+  --deep-teal: #3aa58f;
+  --charcoal: #2e373e;
+  --flame-coral: #f3764b;
+  --leaf: #d5c52d;
+  --cloud-grey: #b7bfc0;
+
+  font-family: 'Nunito Sans', system-ui, sans-serif;
+  color: var(--charcoal);
+  background: #fff;
+}
+
+body {
+  margin: 0;
+  padding: 1rem;
+}
+
+h1,
+h2,
+h3 {
+  font-family: 'Nunito', Arial, sans-serif;
+  font-weight: 700;
+}
