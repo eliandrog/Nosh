@@ -12,7 +12,14 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="Nosh API", lifespan=lifespan)
+app = FastAPI(
+    title="Nosh API",
+    lifespan=lifespan,
+    # Served under /api so the Vite dev proxy exposes them on :5173 too.
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
+    openapi_url="/api/openapi.json",
+)
 
 app.add_middleware(
     CORSMiddleware,
