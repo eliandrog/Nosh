@@ -41,6 +41,19 @@ npm run dev
 
 App: http://localhost:5173 (requests to `/api` are proxied to the backend).
 
+#### Phones and older browsers
+
+The production build includes a modern bundle plus a legacy bundle with polyfills (via `@vitejs/plugin-legacy`), so it also runs on older phone browsers. Each browser loads the version it supports.
+
+To try it on a phone on the same Wi-Fi:
+
+```bash
+npm run build
+npm run preview -- --host   # open the "Network" URL on your phone
+```
+
+`npm run dev -- --host` also works for quick checks, but the dev server serves modern code only.
+
 ## Data
 
 SQLite database. Starter recipes from `Project Nosh - Candidate_Pack.json` will be seeded on first run (not yet implemented).
