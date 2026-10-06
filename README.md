@@ -21,7 +21,7 @@ uv sync
 uv run uvicorn app.main:app --reload
 ```
 
-API: http://localhost:8000 · Docs (Swagger UI): http://localhost:8000/api/docs · OpenAPI spec: http://localhost:8000/api/openapi.json
+API: http://localhost:8000 (redirects to the docs) · Docs (Swagger UI): http://localhost:8000/api/docs · OpenAPI spec: http://localhost:8000/api/openapi.json
 
 The SQLite database (`backend/nosh.db`) is created automatically on startup.
 
