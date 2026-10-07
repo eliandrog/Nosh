@@ -4,10 +4,12 @@ Tags are matched by a key made with the same slug rule as recipes, so
 "Low cost", "low  COST" and "Low-cost" all share the tag "low-cost".
 """
 
-from sqlmodel import Session, select
+from sqlmodel import Session
 
+from app.core.errors import ValidationFailed
 from app.models import Tag
-from app.recipe_ids import slugify
+from app.repositories import tags as tag_repo
+from app.services.recipes import slugify
 
 
 def tag_key(name: str) -> str:
@@ -20,12 +22,8 @@ def get_or_create_tags(session: Session, names: list[str]) -> list[Tag]:
     for name in names:
         key = tag_key(name)
         if not key:
-            raise ValueError("Tag names must contain letters or numbers.")
+            raise ValidationFailed("Tag names must contain letters or numbers.", fields={"tags": "Use at least one letter or number."})
         if key in found:
             continue
-        tag = session.exec(select(Tag).where(Tag.key == key)).first()
-        if tag is None:
-            tag = Tag(key=key, name=" ".join(name.split()), is_builtin=False)
-            session.add(tag)
-        found[key] = tag
+        found[key] = tag_repo.get_by_key(session, key) or tag_repo.add(session, key, " ".join(name.split()))
     return list(found.values())

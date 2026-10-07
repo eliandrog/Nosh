@@ -2,7 +2,8 @@ import pytest
 from sqlmodel import select
 
 from app.models import Recipe, RecipeTag, Tag
-from app.tags import get_or_create_tags, tag_key
+from app.core.errors import ValidationFailed
+from app.services.tags import get_or_create_tags, tag_key
 
 
 def _recipe(session, slug):
@@ -42,5 +43,5 @@ def test_recipe_can_have_zero_or_many_tags(session):
 
 
 def test_tag_name_without_letters_or_numbers_is_rejected(session):
-    with pytest.raises(ValueError):
+    with pytest.raises(ValidationFailed):
         get_or_create_tags(session, ["!!!"])

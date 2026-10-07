@@ -2,7 +2,7 @@ import datetime as dt
 
 import pytest
 
-from app.dates import today, week_start
+from app.core.dates import today, week_start
 
 
 def test_client_date_wins():

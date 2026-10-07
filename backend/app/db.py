@@ -1,4 +1,3 @@
-import os
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -6,9 +5,9 @@ from sqlalchemy import Engine, event
 from sqlmodel import Session, SQLModel, create_engine
 
 from app import models  # noqa: F401  (registers tables on SQLModel.metadata)
+from app.core.config import settings
 
-DEFAULT_DB_PATH = Path(__file__).resolve().parent.parent / "nosh.db"
-DB_PATH = Path(os.environ.get("NOSH_DB_PATH", DEFAULT_DB_PATH))
+DB_PATH = settings.db_path
 
 
 def make_engine(db_path: Path) -> Engine:

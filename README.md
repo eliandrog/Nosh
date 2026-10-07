@@ -27,6 +27,8 @@ The SQLite database (`backend/nosh.db`) is created and seeded automatically on s
 
 > **After pulling changes to the database schema** (`backend/app/models.py`), delete `backend/nosh.db` before starting the backend. There are no migrations yet: tables are created if missing but existing tables are not altered. The starter recipes are reloaded from the JSON automatically. Set `NOSH_DB_PATH` to use a different file (tests use a temporary database).
 
+Logs go to the console in one format with a request id on every line. Set `NOSH_LOG_LEVEL` (default `INFO`) to change the level. Every response carries an `X-Request-ID` header, and API errors return `{"error": {"code", "message", "details", "requestId"}}`.
+
 Run tests:
 
 ```bash

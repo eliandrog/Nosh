@@ -5,7 +5,7 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, func, select
 
-from app.ingredients import merge_key
+from app.services.ingredients import merge_key
 from app.models import (
     Ingredient,
     MethodStep,
@@ -17,7 +17,8 @@ from app.models import (
     RecipeTag,
     Tag,
 )
-from app.recipe_ids import DuplicateRecipeName, new_recipe_slug, slugify
+from app.core.errors import ValidationFailed
+from app.services.recipes import DuplicateRecipeName, new_recipe_slug, slugify
 from app.seed import SEED_FILE, seed_recipes
 
 
@@ -175,7 +176,7 @@ def _recipe(session: Session, slug: str) -> Recipe:
 
 
 def test_name_without_letters_or_numbers_is_rejected(session):
-    with pytest.raises(ValueError):
+    with pytest.raises(ValidationFailed):
         new_recipe_slug(session, " !!! ")
 
 

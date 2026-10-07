@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from app.ingredients import merge_key
+from app.services.ingredients import merge_key
 from app.seed import SEED_FILE
 
 

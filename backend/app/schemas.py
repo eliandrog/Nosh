@@ -2,7 +2,7 @@
 
 JSON is camelCase on the wire; Python stays snake_case. These are kept separate
 from the SQLModel tables so the API contract can differ from the storage shape.
-Not wired to any endpoint yet."""
+Errors use app.core.errors.ErrorResponse: {"error": {code, message, details?, requestId}}."""
 
 import uuid
 
@@ -85,12 +85,6 @@ class RecipeCreate(ApiModel):
     tags: list[str] = []
     ingredients: list[IngredientLineIn] = Field(min_length=1)
     method: list[str] = Field(min_length=1)
-
-
-class ValidationErrorOut(ApiModel):
-    """ASSUMPTION (2): validation errors are HTTP 422 with {"errors": {field: message}}."""
-
-    errors: dict[str, str]
 
 
 class RecipeUsageOut(ApiModel):

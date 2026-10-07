@@ -7,10 +7,13 @@ import json
 from pathlib import Path
 
 from pydantic import BaseModel, Field, field_validator
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from app.constants import UNITS_BY_KEY, Cuisine, DietaryLabel, MealType
-from app.ingredients import merge_key
+from app.repositories import ingredients as ingredient_repo
+from app.repositories import recipes as recipe_repo
+from app.repositories import tags as tag_repo
+from app.services.ingredients import merge_key
 from app.models import (
     Ingredient,
     MethodStep,
@@ -59,17 +62,13 @@ def tag_name(key: str) -> str:
 def _get_or_create_ingredient(session: Session, cache: dict[str, Ingredient], name: str) -> Ingredient:
     key = merge_key(name)
     if key not in cache:
-        existing = session.exec(select(Ingredient).where(Ingredient.name_key == key)).first()
-        cache[key] = existing or Ingredient(name=name.strip(), name_key=key)
-        session.add(cache[key])
+        cache[key] = ingredient_repo.get_by_key(session, key) or ingredient_repo.add(session, name.strip(), key)
     return cache[key]
 
 
 def _get_or_create_tag(session: Session, cache: dict[str, Tag], key: str) -> Tag:
     if key not in cache:
-        existing = session.exec(select(Tag).where(Tag.key == key)).first()
-        cache[key] = existing or Tag(key=key, name=tag_name(key), is_builtin=True)
-        session.add(cache[key])
+        cache[key] = tag_repo.get_by_key(session, key) or tag_repo.add(session, key, tag_name(key), is_builtin=True)
     return cache[key]
 
 
@@ -79,7 +78,7 @@ def load_seed_file(path: Path = SEED_FILE) -> list[SeedRecipe]:
 
 def seed_recipes(session: Session, path: Path = SEED_FILE) -> int:
     """Insert the starter recipes in one transaction. Returns how many were added."""
-    if session.exec(select(Recipe)).first() is not None:
+    if not recipe_repo.is_empty(session):
         return 0
 
     recipes = load_seed_file(path)
