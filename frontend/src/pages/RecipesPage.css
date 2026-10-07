@@ -1,0 +1,65 @@
+.recipes__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.recipes__note {
+  color: var(--text-muted);
+}
+
+.recipes__add {
+  margin-top: 16px;
+  text-decoration: none;
+}
+
+.recipe-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 2px 8px rgba(46, 55, 62, 0.08);
+  color: var(--charcoal);
+  text-decoration: none;
+}
+
+.recipe-card__thumb {
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: var(--nosh-green-tint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+}
+
+.recipe-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.recipe-card__title {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.recipe-card__meta {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.recipe-card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
