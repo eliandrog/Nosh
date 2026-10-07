@@ -34,6 +34,13 @@ def test_contract_schemas_are_published_in_camel_case():
     assert set(schemas["ErrorBody"]["properties"]) == {"code", "message", "details", "requestId"}
 
 
+def test_options_are_published_as_enums_not_free_text():
+    props = app.openapi()["components"]["schemas"]["OptionsOut"]["properties"]
+    assert props["mealTypes"]["items"] == {"$ref": "#/components/schemas/MealType"}
+    assert props["dietaryLabels"]["items"] == {"$ref": "#/components/schemas/DietaryLabel"}
+    assert props["cuisines"]["items"] == {"$ref": "#/components/schemas/Cuisine"}
+
+
 def test_exported_openapi_file_is_up_to_date():
     from app.export_openapi import OPENAPI_FILE, render
 
