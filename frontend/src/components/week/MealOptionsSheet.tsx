@@ -8,6 +8,9 @@ import { TrashIcon } from '../icons'
 import { BottomSheet, Button, Stepper } from '../ui'
 import { RecipePicker } from './RecipePicker'
 
+/** "Wednesday" from a date, for free meals that only run on one weekday. */
+const parseWeekday = (iso: IsoDate): string => longDayLabel(iso).split(' ')[0]
+
 type MealOptionsSheetProps = {
   entry: PlanEntry | null
   weekDays: IsoDate[]
@@ -40,7 +43,10 @@ export function MealOptionsSheet({ entry, weekDays, busy, onClose, onServings, o
     )
   }
 
-  const otherDays = weekDays.filter((d) => d !== entry.date)
+  // A free meal is only served on its weekday, so it can't move to another day of the same week.
+  const isFreeMeal = entry.kind === 'free_meal'
+  const otherDays = isFreeMeal ? [] : weekDays.filter((d) => d !== entry.date)
+  const servedOn = parseWeekday(entry.date)
   return (
     <BottomSheet open title={mealName(entry)} onClose={onClose}>
       <p className="meal-sheet__day">{longDayLabel(entry.date)}</p>
@@ -60,24 +66,28 @@ export function MealOptionsSheet({ entry, weekDays, busy, onClose, onServings, o
         Swap for another recipe
       </Button>
 
-      <div className="meal-sheet__move">
-        <label htmlFor={moveId} className="form-label">
-          Move to another day
-        </label>
-        <div className="meal-sheet__move-row">
-          <select id={moveId} className="text-input" value={moveTo} onChange={(e) => setMoveTo(e.target.value)}>
-            <option value="">Choose a day</option>
-            {otherDays.map((d) => (
-              <option key={d} value={d}>
-                {dayLabel(d)}
-              </option>
-            ))}
-          </select>
-          <Button variant="outline" disabled={!moveTo || busy} onClick={() => onMove(moveTo)}>
-            Move
-          </Button>
+      {isFreeMeal ? (
+        <p className="meal-sheet__note">Only served on {servedOn}s, so it stays on this day.</p>
+      ) : (
+        <div className="meal-sheet__move">
+          <label htmlFor={moveId} className="form-label">
+            Move to another day
+          </label>
+          <div className="meal-sheet__move-row">
+            <select id={moveId} className="text-input" value={moveTo} onChange={(e) => setMoveTo(e.target.value)}>
+              <option value="">Choose a day</option>
+              {otherDays.map((d) => (
+                <option key={d} value={d}>
+                  {dayLabel(d)}
+                </option>
+              ))}
+            </select>
+            <Button variant="outline" disabled={!moveTo || busy} onClick={() => onMove(moveTo)}>
+              Move
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
 
       <button type="button" className="meal-sheet__remove" disabled={busy} onClick={onRemove}>
         <TrashIcon size={20} className="meal-sheet__remove-icon" aria-hidden="true" />

@@ -39,6 +39,13 @@ export type PlanEntryInput = Schemas['PlanEntryCreate']
 export type PlanEntryPatch = Schemas['PlanEntryUpdate']
 export type PlannedDays = Schemas['PlanDaysOut']
 
+/** A place sharing free meals, with its distance from the search point (km). */
+export type Place = Schemas['PlaceOut']
+/** A meal a place shares every week: weekday 0 = Monday … 6 = Sunday, times "HH:MM:SS". */
+export type PlaceMeal = Schemas['PlaceMealOut']
+export type PlaceType = Schemas['PlaceType']
+export type PlaceMealKind = Schemas['PlaceMealKind']
+
 export type ShoppingItem = Schemas['ShoppingListItemOut']
 export type ShoppingListChanges = Schemas['ShoppingListChangesOut']
 export type ShoppingList = Schemas['ShoppingListOut']
@@ -61,6 +68,18 @@ export type RecipeFilters = {
   page?: number
   /** 1–50; defaults to 20 on the server */
   pageSize?: number
+}
+
+/** Query options for GET /api/places (search by coordinates; no postcode search). */
+export type PlaceFilters = {
+  lat: number
+  lng: number
+  radiusKm?: number
+  openToday?: boolean
+  kind?: PlaceMealKind
+  dietary?: DietaryLabel[]
+  /** The user's local date, so "open today" uses the right weekday. */
+  today?: string
 }
 
 /** Field path (camelCase, e.g. "ingredients.0.unit") -> message to show next to that field. */

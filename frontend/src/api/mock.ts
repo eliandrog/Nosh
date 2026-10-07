@@ -9,6 +9,8 @@ import type {
   DietaryLabel,
   FieldErrors,
   MealType,
+  Place,
+  PlaceMeal,
   PlanDay,
   PlanEntry,
   Preferences,
@@ -128,6 +130,30 @@ const toDetail = (r: JsonRecipe, isCustom = false, id = fakeUuid()): RecipeDetai
 const recipes = new Map<string, RecipeDetail>(SAMPLE.map((r) => [r.id, toDetail(r)]))
 let preferences: Preferences = { dietary: ['vegetarian'] }
 let planEntries: PlanEntry[] = []
+
+// Same 3 demo places as the backend seed (fictional names, real Brixton postcodes). Weekday 0 = Monday.
+const meal = (m: Omit<PlaceMeal, 'openToday'>): Omit<PlaceMeal, 'openToday'> => m
+const PLACES: (Omit<Place, 'distanceKm' | 'meals'> & { meals: Omit<PlaceMeal, 'openToday'>[] })[] = [
+  {
+    id: 1, name: 'Demo Community Kitchen', type: 'community_kitchen', postcode: 'SW2 1RW', latitude: 51.460662, longitude: -0.116872, isDemo: true,
+    meals: [meal({ id: 1, name: 'Vegetable curry with rice', kind: 'hot', weekday: 2, startTime: '12:00:00', endTime: '14:00:00', serves: 1, servesNote: '1 per portion', dietary: ['vegan', 'gluten-free'] })],
+  },
+  {
+    id: 2, name: 'Sample Street Café', type: 'cafe', postcode: 'SW2 1JQ', latitude: 51.461104, longitude: -0.114723, isDemo: true,
+    meals: [meal({ id: 2, name: "Shepherd's pie and peas", kind: 'hot', weekday: 2, startTime: '17:30:00', endTime: '19:00:00', serves: 2, servesNote: 'takeaway tray', dietary: [] })],
+  },
+  {
+    id: 3, name: 'Example Food Hub', type: 'food_hub', postcode: 'SW9 8PR', latitude: 51.462606, longitude: -0.111969, isDemo: true,
+    meals: [meal({ id: 3, name: 'Food parcel: tins, pasta, fresh veg', kind: 'parcel', weekday: 3, startTime: '10:00:00', endTime: '13:00:00', serves: 4, servesNote: 'feeds 4 for about 3 days', dietary: ['vegetarian'] })],
+  },
+]
+
+const haversineKm = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+  const rad = (d: number) => (d * Math.PI) / 180
+  const a = Math.sin(rad(lat2 - lat1) / 2) ** 2 + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(rad(lng2 - lng1) / 2) ** 2
+  return 2 * 6371 * Math.asin(Math.sqrt(a))
+}
+const weekdayOfIso = (iso: string) => (new Date(`${iso}T00:00:00`).getDay() + 6) % 7
 let nextEntryId = 1
 let profile: Profile = { name: 'Sam Jones', email: 'sam.jones@example.com', householdSize: 2 }
 
@@ -320,7 +346,41 @@ export const mockApi: Api = {
     })
     return delay({ weekStart: start, days })
   },
+  listPlaces: (f) => {
+    const todayWeekday = weekdayOfIso(f.today ?? isoDate(new Date()))
+    const places = PLACES.map((p) => ({
+      ...p,
+      distanceKm: Math.round(haversineKm(f.lat, f.lng, p.latitude, p.longitude) * 100) / 100,
+      meals: p.meals
+        .map((m) => ({ ...m, openToday: m.weekday === todayWeekday }))
+        .filter((m) => (!f.openToday || m.openToday) && (!f.kind || m.kind === f.kind) && (f.dietary ?? []).every((d) => m.dietary.includes(d))),
+    }))
+    return delay(places.filter((p) => p.meals.length && p.distanceKm <= (f.radiusKm ?? 2)).sort((a, b) => a.distanceKm - b.distanceKm))
+  },
+  getPlace: (id) => {
+    const p = PLACES.find((x) => x.id === id)
+    if (!p) return Promise.reject(new ApiError(404, { code: 'place_not_found', message: "We couldn't find that place.", requestId: 'mock' }))
+    const todayWeekday = weekdayOfIso(isoDate(new Date()))
+    return delay({ ...p, distanceKm: null, meals: p.meals.map((m) => ({ ...m, openToday: m.weekday === todayWeekday })) })
+  },
+
   addPlanEntry: (input) => {
+    if (input.placeMealId) {
+      const place = PLACES.find((p) => p.meals.some((m) => m.id === input.placeMealId))
+      const pm = place?.meals.find((m) => m.id === input.placeMealId)
+      if (!place || !pm) return notFound()
+      if (weekdayOfIso(input.date) !== pm.weekday) {
+        const day = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][pm.weekday]
+        return Promise.reject(new ValidationError(422, { code: 'validation_error', message: 'Some details need fixing.', details: { fields: { date: `This meal is only served on ${day}s.` } }, requestId: 'mock' }))
+      }
+      const position = planEntries.filter((e) => e.date === input.date).length
+      const entry: PlanEntry = {
+        id: nextEntryId++, date: input.date, position, kind: 'free_meal', recipeId: null, recipeSlug: null, recipeName: null, recipeDeleted: false, servings: input.servings,
+        placeMeal: { id: pm.id, name: pm.name, kind: pm.kind, placeId: place.id, placeName: place.name, startTime: pm.startTime, endTime: pm.endTime },
+      }
+      planEntries.push(entry)
+      return delay(entry)
+    }
     const r = [...recipes.values()].find((x) => x.id === input.recipeId)
     if (!r) return notFound()
     const position = planEntries.filter((e) => e.date === input.date).length

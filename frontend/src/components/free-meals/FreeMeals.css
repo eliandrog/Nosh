@@ -1,0 +1,195 @@
+.free-meals {
+  /* Map bleeds to the screen edges; the page's own side padding is 16px. */
+  margin: calc(-16px - env(safe-area-inset-top, 0px)) -16px 0;
+}
+
+.free-meals__map-area {
+  position: relative;
+}
+
+.places-map {
+  height: 45vh;
+  min-height: 260px;
+  width: 100%;
+  background: var(--surface);
+  z-index: 0;
+}
+
+.places-map--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+
+.free-meals__overlay {
+  position: absolute;
+  top: calc(12px + env(safe-area-inset-top, 0px));
+  left: 16px;
+  right: 16px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  z-index: 500; /* above Leaflet panes */
+}
+
+.free-meals__filters {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.free-meals__filter {
+  min-height: var(--tap);
+  padding: 0 14px;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--border);
+  background: var(--white);
+  color: var(--charcoal);
+  font: inherit;
+  font-weight: 700;
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(46, 55, 62, 0.12);
+}
+
+.free-meals__filter--on {
+  background: var(--charcoal);
+  border-color: var(--charcoal);
+  color: var(--white);
+}
+
+.free-meals__panel {
+  position: relative;
+  margin-top: -16px;
+  padding: 16px 16px 8px;
+  background: var(--white);
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -4px 16px rgba(46, 55, 62, 0.12);
+  z-index: 1;
+}
+
+.free-meals__title {
+  font-size: 20px;
+  margin: 0;
+}
+
+.free-meals__count,
+.free-meals__note,
+.free-meals__credit {
+  margin: 4px 0 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.free-meals__credit {
+  font-size: 11px;
+}
+
+.free-meals__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.place-card {
+  border: 1px solid var(--divider);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  background: var(--white);
+}
+
+.place-card--selected {
+  border: 2px solid var(--deep-teal);
+}
+
+.place-card__select {
+  display: flex;
+  width: 100%;
+  min-height: var(--tap);
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  color: var(--charcoal);
+  cursor: pointer;
+}
+
+.place-card__name {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.place-card__meta {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.place-meal {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.place-meal p {
+  margin: 0;
+}
+
+.place-meal__name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+}
+
+.place-meal__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.place-meal__serves {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.place-meal__times {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.place-meal__actions {
+  margin-top: 8px;
+}
+
+.place-meal__added {
+  font-size: 14px;
+}
+
+.place-meal__error {
+  margin-top: 6px !important;
+  font-size: 13px;
+  color: var(--charcoal);
+}
+
+.place-card__directions {
+  margin-top: 8px;
+  text-decoration: none;
+}
+
+.map-pin,
+.map-you {
+  background: transparent;
+  border: 0;
+}
