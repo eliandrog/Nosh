@@ -4,10 +4,16 @@ TECHNICAL.md
 # Claude Code (agent worktrees, local settings)
 .claude/
 
-# Environment
+# Environment & secrets (keys live in backend/.env; commit only .env.example)
 .env
 .env.*
 !.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+credentials*.json
 
 # Python
 __pycache__/
