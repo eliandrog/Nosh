@@ -2,14 +2,19 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { errorMessage } from '../api/client'
 import { api } from '../api/endpoints'
-import type { RecipePage, RecipeSummary } from '../api/types'
+import type { DietaryLabel, RecipePage, RecipeSummary, Tag } from '../api/types'
 import { PageHeader } from '../components/Layout'
 import { NoshMark } from '../components/NoshMark'
 import { Pagination } from '../components/Pagination'
+import { ActiveFilters, FilterButton } from '../components/recipes/ActiveFilters'
+import type { FilterChip } from '../components/recipes/ActiveFilters'
+import { FilterSheet } from '../components/recipes/FilterSheet'
 import { SearchBar } from '../components/SearchBar'
 import { Button, Chip } from '../components/ui'
 import { PlusIcon } from '../components/icons'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
+import { activeCount, applyPending, dietaryToStore, effectiveDietary, parseFilters, toQuery, writeFilters } from '../lib/recipeFilters'
+import type { AppliedFilters, PendingFilters } from '../lib/recipeFilters'
 import './RecipesPage.css'
 
 const title = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).replace(/-/g, ' ')
@@ -47,10 +52,22 @@ function RecipeCard({ recipe }: { recipe: RecipeSummary }) {
 type State =
   | { status: 'loading' }
   | { status: 'error'; message: string }
-  | { status: 'ready'; data: RecipePage; query: string; page: number }
+  | { status: 'ready'; data: RecipePage; query: string; page: number; filters: string }
 
 export const SEARCH_DELAY_MS = 300
 export const PAGE_SIZE = 5
+
+const FILTER_KEYS = ['mealType', 'dietary', 'tag', 'all'] as const
+
+/** Just the filter part of the URL, as a stable string (used as an effect dependency). */
+function filterSearch(params: URLSearchParams): string {
+  const only = new URLSearchParams()
+  for (const key of FILTER_KEYS) {
+    const value = params.get(key)
+    if (value !== null) only.set(key, value)
+  }
+  return only.toString()
+}
 
 /** `?page=` from the URL; anything missing or invalid means page 1. */
 function pageFrom(params: URLSearchParams): number {
@@ -63,6 +80,8 @@ export function RecipesPage() {
   // The URL is the source of truth for what's loaded: /recipes?q=dahl&page=2.
   const urlQuery = params.get('q') ?? ''
   const page = pageFrom(params)
+  const filters = filterSearch(params)
+  const applied: AppliedFilters = parseFilters(params)
 
   const [text, setText] = useState(urlQuery)
   const debounced = useDebouncedValue(text.trim(), SEARCH_DELAY_MS)
@@ -70,6 +89,19 @@ export function RecipesPage() {
   const [state, setState] = useState<State>({ status: 'loading' })
   const [attempt, setAttempt] = useState(0)
   const topRef = useRef<HTMLDivElement>(null)
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const [saved, setSaved] = useState<DietaryLabel[]>([])
+  const [tags, setTags] = useState<Tag[]>([])
+
+  // Saved dietary preferences (the default dietary filter) and tag names, for the filter sheet and chips.
+  useEffect(() => {
+    let cancelled = false
+    api.getPreferences().then((p) => !cancelled && setSaved(p.dietary)).catch(() => undefined)
+    api.listTags().then((t) => !cancelled && setTags(t)).catch(() => undefined)
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   // A new search goes into the URL and starts again from page 1 (in one update, so only one request).
   useEffect(() => {
@@ -88,17 +120,41 @@ export function RecipesPage() {
 
   useEffect(() => {
     let cancelled = false // ignores replies to older requests that arrive late
+    const filterQuery = toQuery(parseFilters(new URLSearchParams(filters)))
     api
-      .listRecipes({ q: urlQuery || undefined, page, pageSize: PAGE_SIZE })
-      .then((data) => !cancelled && setState({ status: 'ready', data, query: urlQuery, page }))
+      .listRecipes({ q: urlQuery || undefined, page, pageSize: PAGE_SIZE, ...filterQuery })
+      .then((data) => !cancelled && setState({ status: 'ready', data, query: urlQuery, page, filters }))
       .catch((e) => !cancelled && setState({ status: 'error', message: errorMessage(e, 'Something went wrong loading recipes') }))
     return () => {
       cancelled = true
     }
-  }, [urlQuery, page, attempt])
+  }, [urlQuery, page, filters, attempt])
 
   // What's on screen belongs to an older search or page while the new one loads.
-  const loadingNew = state.status === 'ready' && (state.query !== query || state.page !== page)
+  const loadingNew = state.status === 'ready' && (state.query !== query || state.page !== page || state.filters !== filters)
+
+  // Filters in force, with dietary resolved from saved preferences when none were chosen.
+  const inForce: PendingFilters = { mealTypes: applied.mealTypes, dietary: effectiveDietary(applied, saved), tags: applied.tags }
+  const filterCount = activeCount(inForce)
+
+  const setFilters = (next: AppliedFilters) => {
+    setParams((prev) => writeFilters(prev, next)) // back to page 1, search kept
+    topRef.current?.scrollIntoView?.({ block: 'start' })
+  }
+
+  const applySheet = (pending: PendingFilters) => {
+    setFiltersOpen(false)
+    setFilters(applyPending(pending, saved))
+  }
+
+  const removeFilter = (chip: FilterChip) => {
+    if (chip.group === 'dietary') setFilters({ ...applied, dietary: dietaryToStore(inForce.dietary.filter((d) => d !== chip.value), saved) })
+    else if (chip.group === 'mealTypes') setFilters({ ...applied, mealTypes: applied.mealTypes.filter((m) => m !== chip.value) })
+    else setFilters({ ...applied, tags: applied.tags.filter((t) => t !== chip.value) })
+  }
+
+  // Clearing dietary is explicit (all=true) unless there are no saved preferences to come back.
+  const clearFilters = () => setFilters({ mealTypes: [], dietary: dietaryToStore([], saved), tags: [] })
 
   const goToPage = (next: number) => {
     setParams((prev) => {
@@ -120,7 +176,9 @@ export function RecipesPage() {
       <PageHeader title="Recipes" logo={<NoshMark />} />
       <div className="recipes__search">
         <SearchBar value={text} onChange={setText} label="Search recipes" placeholder="Search recipes or ingredients" />
+        <FilterButton active={filterCount} onClick={() => setFiltersOpen(true)} />
       </div>
+      <ActiveFilters filters={inForce} tags={tags} onRemove={removeFilter} />
 
       {state.status === 'loading' && <p className="recipes__note">Loading recipes…</p>}
 
@@ -136,7 +194,7 @@ export function RecipesPage() {
       {state.status === 'ready' && (
         <>
           <p className="recipes__count" aria-live="polite">
-            {loadingNew ? 'Loading…' : resultText(state.data.total, state.query)}
+            {loadingNew ? 'Loading…' : resultText(state.data.total, state.query, filterCount)}
           </p>
           {state.data.items.length > 0 ? (
             <ul className={`recipes__list${loadingNew ? ' recipes__list--stale' : ''}`}>
@@ -155,7 +213,14 @@ export function RecipesPage() {
             </div>
           ) : (
             <div className="recipes__note">
-              {state.query ? (
+              {filterCount > 0 ? (
+                <>
+                  <p>No recipes match these filters{state.query ? ` and “${state.query}”` : ''}.</p>
+                  <Button variant="outline" onClick={clearFilters}>
+                    Clear filters
+                  </Button>
+                </>
+              ) : state.query ? (
                 <>
                   <p>No recipes match “{state.query}”. Try another word or an ingredient.</p>
                   <Button variant="outline" onClick={() => setText('')}>
@@ -171,6 +236,10 @@ export function RecipesPage() {
         </>
       )}
 
+      {filtersOpen && (
+        <FilterSheet initial={inForce} saved={saved} tags={tags} query={urlQuery} onApply={applySheet} onClose={() => setFiltersOpen(false)} />
+      )}
+
       {/* Always reachable: sits above the tab bar while the list scrolls behind it. */}
       <div className="recipes__sticky-add">
         <Link to="/recipes/new" className="btn btn--primary btn--block">
@@ -181,7 +250,8 @@ export function RecipesPage() {
   )
 }
 
-function resultText(total: number, query: string): string {
+function resultText(total: number, query: string, filterCount: number): string {
   const recipes = `${total} ${total === 1 ? 'recipe' : 'recipes'}`
-  return query ? `${recipes} for “${query}”` : recipes
+  const text = query ? `${recipes} for “${query}”` : recipes
+  return filterCount ? `${text} · ${filterCount} ${filterCount === 1 ? 'filter' : 'filters'}` : text
 }
