@@ -154,6 +154,7 @@ def get_list(session: Session, day: dt.date, today: dt.date) -> ShoppingListOut:
     if start >= week_start(today):
         rebuild_week(session, start, today, entries)
         session.commit()
+        entries = _week_entries(session, start)  # reload: commit expires them, and lazy loads would be per row
     items = sorted(shopping_repo.list_items(session, start), key=lambda i: (i.ingredient.name.lower(), i.unit))
     used_in = _used_in(entries)
     return ShoppingListOut(
