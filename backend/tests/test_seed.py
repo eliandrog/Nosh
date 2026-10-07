@@ -1,4 +1,5 @@
 import json
+import uuid
 
 import pytest
 from sqlalchemy.exc import IntegrityError
@@ -16,7 +17,7 @@ from app.models import (
     RecipeTag,
     Tag,
 )
-from app.recipe_ids import DuplicateRecipeName, new_recipe_id, slugify
+from app.recipe_ids import DuplicateRecipeName, new_recipe_slug, slugify
 from app.seed import SEED_FILE, seed_recipes
 
 
@@ -43,7 +44,7 @@ def test_seed_loads_every_ingredient_line_step_and_label(session):
 
 
 def test_seed_keeps_recipe_details_and_order(session):
-    dahl = session.get(Recipe, "lentil-dahl")
+    dahl = _recipe(session, "lentil-dahl")
     first = dahl.ingredients[0]
     assert (first.ingredient.name, first.quantity, first.unit) == ("red lentils", 250, "g")
     onion = dahl.ingredients[1]
@@ -84,7 +85,7 @@ def test_seed_does_not_modify_the_json(session):
 
 
 def _add_custom(session: Session, name: str) -> Recipe:
-    recipe = Recipe(id=new_recipe_id(session, name), name=name, cuisine="british", serves=4, is_custom=True)
+    recipe = Recipe(slug=new_recipe_slug(session, name), name=name, cuisine="british", serves=4, is_custom=True)
     session.add(recipe)
     session.commit()
     return recipe
@@ -103,23 +104,29 @@ def test_slugify(name, slug):
     assert slugify(name) == slug
 
 
-def test_seed_ids_match_slug_rule(session):
-    assert all(r.id == slugify(r.name) for r in session.exec(select(Recipe)))
+def test_seed_slugs_match_json_ids_and_slug_rule(session):
+    json_ids = {r["id"] for r in raw_recipes()}
+    recipes = session.exec(select(Recipe)).all()
+    assert {r.slug for r in recipes} == json_ids
+    assert all(r.slug == slugify(r.name) for r in recipes)
+    assert all(isinstance(r.id, uuid.UUID) for r in recipes)
 
 
-def test_new_recipe_id_is_slug_of_name(session):
-    assert _add_custom(session, "Nan's Veggie Stew").id == "nans-veggie-stew"
+def test_new_recipe_gets_uuid_and_slug_of_name(session):
+    recipe = _add_custom(session, "Nan's Veggie Stew")
+    assert recipe.slug == "nans-veggie-stew"
+    assert isinstance(recipe.id, uuid.UUID)
 
 
 def test_same_name_as_active_recipe_is_blocked(session):
     _add_custom(session, "Nan's Veggie Stew")
     with pytest.raises(DuplicateRecipeName):
-        new_recipe_id(session, "  NAN'S VEGGIE STEW ")
+        new_recipe_slug(session, "  NAN'S VEGGIE STEW ")
 
 
 def test_same_name_as_builtin_recipe_is_blocked(session):
     with pytest.raises(DuplicateRecipeName, match="Lentil Dahl"):
-        new_recipe_id(session, "lentil dahl")
+        new_recipe_slug(session, "lentil dahl")
 
 
 def test_name_of_deleted_recipe_gets_next_suffix(session):
@@ -127,10 +134,10 @@ def test_name_of_deleted_recipe_gets_next_suffix(session):
     first.deleted = True
     session.commit()
     second = _add_custom(session, "Nan's Veggie Stew")
-    assert second.id == "nans-veggie-stew-2"
+    assert second.slug == "nans-veggie-stew-2"
     second.deleted = True
     session.commit()
-    assert _add_custom(session, "Nan's Veggie Stew").id == "nans-veggie-stew-3"
+    assert _add_custom(session, "Nan's Veggie Stew").slug == "nans-veggie-stew-3"
     assert count(session, Recipe) == 23
 
 
@@ -140,18 +147,42 @@ def test_active_suffixed_recipe_still_blocks(session):
     session.commit()
     _add_custom(session, "Nan's Veggie Stew")  # active as nans-veggie-stew-2
     with pytest.raises(DuplicateRecipeName):
-        new_recipe_id(session, "Nan's Veggie Stew")
+        new_recipe_slug(session, "Nan's Veggie Stew")
+
+
+def test_rename_keeps_uuid_and_updates_slug(session):
+    recipe = _add_custom(session, "Nan's Veggie Stew")
+    original_id = recipe.id
+    recipe.name = "Nan's Winter Stew"
+    recipe.slug = new_recipe_slug(session, recipe.name, exclude_id=recipe.id)
+    session.commit()
+    assert (recipe.id, recipe.slug) == (original_id, "nans-winter-stew")
+
+
+def test_rename_to_own_name_is_allowed(session):
+    recipe = _add_custom(session, "Nan's Veggie Stew")
+    assert new_recipe_slug(session, "nan's veggie stew", exclude_id=recipe.id) == "nans-veggie-stew"
+
+
+def test_slugs_are_unique_in_the_database(session):
+    session.add(Recipe(slug="lentil-dahl", name="Other", cuisine="british", serves=2))
+    with pytest.raises(IntegrityError):
+        session.commit()
+
+
+def _recipe(session: Session, slug: str) -> Recipe:
+    return session.exec(select(Recipe).where(Recipe.slug == slug)).one()
 
 
 def test_name_without_letters_or_numbers_is_rejected(session):
     with pytest.raises(ValueError):
-        new_recipe_id(session, " !!! ")
+        new_recipe_slug(session, " !!! ")
 
 
 def test_plan_entry_servings_must_be_positive(session):
     import datetime as dt
 
-    session.add(PlanEntry(date=dt.date(2026, 10, 7), recipe_id="lentil-dahl", servings=0))
+    session.add(PlanEntry(date=dt.date(2026, 10, 7), recipe_id=_recipe(session, "lentil-dahl").id, servings=0))
     with pytest.raises(IntegrityError):
         session.commit()
 
@@ -159,6 +190,6 @@ def test_plan_entry_servings_must_be_positive(session):
 def test_plan_entry_requires_existing_recipe(session):
     import datetime as dt
 
-    session.add(PlanEntry(date=dt.date(2026, 10, 7), recipe_id="no-such-recipe", servings=2))
+    session.add(PlanEntry(date=dt.date(2026, 10, 7), recipe_id=uuid.uuid4(), servings=2))
     with pytest.raises(IntegrityError):
         session.commit()

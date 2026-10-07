@@ -1,6 +1,7 @@
 """SQLModel tables. See TECHNICAL.md "Database schema" for the diagram and rules."""
 
 import datetime as dt
+import uuid
 
 from sqlalchemy import CheckConstraint, UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
@@ -11,9 +12,11 @@ def _now() -> dt.datetime:
 
 
 class Recipe(SQLModel, table=True):
-    # Slug of the name (see app/recipe_ids.py); never reused, so deleted recipes keep theirs.
-    # Active-name uniqueness is enforced by new_recipe_id(), not by a DB constraint.
-    id: str = Field(primary_key=True)
+    # Stable internal identifier; all other tables link to this, so renames never break links.
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    # URL-friendly name ("nans-veggie-stew"), see app/recipe_ids.py. Unique across all recipes,
+    # deleted ones included, so a slug is never reused; active-name clashes are blocked in code.
+    slug: str = Field(unique=True, index=True)
     name: str
     cuisine: str
     serves: int = Field(ge=1)
@@ -49,7 +52,7 @@ class Ingredient(SQLModel, table=True):
 class RecipeIngredient(SQLModel, table=True):
     __tablename__ = "recipe_ingredient"
 
-    recipe_id: str = Field(foreign_key="recipe.id", primary_key=True, ondelete="CASCADE")
+    recipe_id: uuid.UUID = Field(foreign_key="recipe.id", primary_key=True, ondelete="CASCADE")
     position: int = Field(primary_key=True)
     ingredient_id: int = Field(foreign_key="ingredient.id", index=True)
     quantity: float | None = None  # None = "to taste"
@@ -65,7 +68,7 @@ class MethodStep(SQLModel, table=True):
     __table_args__ = (UniqueConstraint("recipe_id", "position"),)
 
     id: int | None = Field(default=None, primary_key=True)
-    recipe_id: str = Field(foreign_key="recipe.id", index=True, ondelete="CASCADE")
+    recipe_id: uuid.UUID = Field(foreign_key="recipe.id", index=True, ondelete="CASCADE")
     position: int
     text: str
 
@@ -75,14 +78,14 @@ class MethodStep(SQLModel, table=True):
 class RecipeMealType(SQLModel, table=True):
     __tablename__ = "recipe_meal_type"
 
-    recipe_id: str = Field(foreign_key="recipe.id", primary_key=True, ondelete="CASCADE")
+    recipe_id: uuid.UUID = Field(foreign_key="recipe.id", primary_key=True, ondelete="CASCADE")
     meal_type: str = Field(primary_key=True)  # breakfast | lunch | dinner | dessert
 
 
 class RecipeDietary(SQLModel, table=True):
     __tablename__ = "recipe_dietary"
 
-    recipe_id: str = Field(foreign_key="recipe.id", primary_key=True, ondelete="CASCADE")
+    recipe_id: uuid.UUID = Field(foreign_key="recipe.id", primary_key=True, ondelete="CASCADE")
     label: str = Field(primary_key=True)  # vegetarian | vegan | gluten-free | dairy-free
 
 
@@ -96,7 +99,7 @@ class Tag(SQLModel, table=True):
 class RecipeTag(SQLModel, table=True):
     __tablename__ = "recipe_tag"
 
-    recipe_id: str = Field(foreign_key="recipe.id", primary_key=True, ondelete="CASCADE")
+    recipe_id: uuid.UUID = Field(foreign_key="recipe.id", primary_key=True, ondelete="CASCADE")
     tag_id: int = Field(foreign_key="tag.id", primary_key=True, ondelete="CASCADE")
 
     tag: Tag = Relationship()
@@ -110,7 +113,7 @@ class PlanEntry(SQLModel, table=True):
     date: dt.date = Field(index=True)
     position: int = 0  # order within the day; unlimited meals per day
     # Kept for soft-deleted recipes so past weeks still show them.
-    recipe_id: str = Field(foreign_key="recipe.id", index=True)
+    recipe_id: uuid.UUID = Field(foreign_key="recipe.id", index=True)
     servings: int = 1
     created_at: dt.datetime = Field(default_factory=_now)
 

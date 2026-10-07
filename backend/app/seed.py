@@ -89,7 +89,7 @@ def seed_recipes(session: Session, path: Path = SEED_FILE) -> int:
     try:
         for r in recipes:
             recipe = Recipe(
-                id=r.id,
+                slug=r.id,  # JSON ids are already slugs of the name
                 name=r.name,
                 cuisine=r.cuisine,
                 serves=r.serves,

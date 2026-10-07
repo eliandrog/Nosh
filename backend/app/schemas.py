@@ -4,6 +4,8 @@ JSON is camelCase on the wire; Python stays snake_case. These are kept separate
 from the SQLModel tables so the API contract can differ from the storage shape.
 Not wired to any endpoint yet."""
 
+import uuid
+
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
@@ -35,7 +37,8 @@ class TagOut(ApiModel):
 class RecipeSummary(ApiModel):
     """GET /api/recipes item."""
 
-    id: str
+    id: uuid.UUID  # stable internal id
+    slug: str  # used in URLs: /api/recipes/{slug}
     name: str
     cuisine: str
     serves: int
