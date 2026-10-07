@@ -287,6 +287,156 @@
         "title": "OptionsOut",
         "type": "object"
       },
+      "PlaceMealKind": {
+        "enum": [
+          "hot",
+          "parcel"
+        ],
+        "title": "PlaceMealKind",
+        "type": "string"
+      },
+      "PlaceMealOut": {
+        "properties": {
+          "dietary": {
+            "items": {
+              "$ref": "#/components/schemas/DietaryLabel"
+            },
+            "title": "Dietary",
+            "type": "array"
+          },
+          "endTime": {
+            "format": "time",
+            "title": "Endtime",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PlaceMealKind"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "openToday": {
+            "title": "Opentoday",
+            "type": "boolean"
+          },
+          "serves": {
+            "title": "Serves",
+            "type": "integer"
+          },
+          "servesNote": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Servesnote"
+          },
+          "startTime": {
+            "format": "time",
+            "title": "Starttime",
+            "type": "string"
+          },
+          "weekday": {
+            "title": "Weekday",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "weekday",
+          "startTime",
+          "endTime",
+          "serves",
+          "servesNote",
+          "dietary",
+          "openToday"
+        ],
+        "title": "PlaceMealOut",
+        "type": "object"
+      },
+      "PlaceOut": {
+        "description": "GET /api/places (nearby, sorted by distance) and GET /api/places/{id}.",
+        "properties": {
+          "distanceKm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distancekm"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "isDemo": {
+            "title": "Isdemo",
+            "type": "boolean"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "meals": {
+            "items": {
+              "$ref": "#/components/schemas/PlaceMealOut"
+            },
+            "title": "Meals",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "postcode": {
+            "title": "Postcode",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/PlaceType"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "postcode",
+          "latitude",
+          "longitude",
+          "isDemo",
+          "distanceKm",
+          "meals"
+        ],
+        "title": "PlaceOut",
+        "type": "object"
+      },
+      "PlaceType": {
+        "description": "Kinds of place that share free meals (Free meals nearby).",
+        "enum": [
+          "community_kitchen",
+          "cafe",
+          "food_hub"
+        ],
+        "title": "PlaceType",
+        "type": "string"
+      },
       "PlanDayOut": {
         "properties": {
           "date": {
@@ -333,17 +483,36 @@
         "type": "object"
       },
       "PlanEntryCreate": {
-        "description": "POST /api/plan/entries. The meal goes last on that day.",
+        "description": "POST /api/plan/entries. The meal goes last on that day.\n\nGive exactly one of recipeId or placeMealId. A place meal can only go on its weekday.",
         "properties": {
           "date": {
             "format": "date",
             "title": "Date",
             "type": "string"
           },
+          "placeMealId": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Placemealid"
+          },
           "recipeId": {
-            "format": "uuid",
-            "title": "Recipeid",
-            "type": "string"
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recipeid"
           },
           "servings": {
             "minimum": 1.0,
@@ -353,13 +522,13 @@
         },
         "required": [
           "date",
-          "recipeId",
           "servings"
         ],
         "title": "PlanEntryCreate",
         "type": "object"
       },
       "PlanEntryOut": {
+        "description": "A planned meal: either a recipe (kind \"recipe\") or a free meal from a place (kind \"free_meal\").",
         "properties": {
           "date": {
             "format": "date",
@@ -370,6 +539,25 @@
             "title": "Id",
             "type": "integer"
           },
+          "kind": {
+            "default": "recipe",
+            "enum": [
+              "recipe",
+              "free_meal"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "placeMeal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PlanPlaceMealOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "position": {
             "title": "Position",
             "type": "integer"
@@ -379,17 +567,38 @@
             "type": "boolean"
           },
           "recipeId": {
-            "format": "uuid",
-            "title": "Recipeid",
-            "type": "string"
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recipeid"
           },
           "recipeName": {
-            "title": "Recipename",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recipename"
           },
           "recipeSlug": {
-            "title": "Recipeslug",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recipeslug"
           },
           "servings": {
             "title": "Servings",
@@ -462,6 +671,51 @@
           }
         },
         "title": "PlanEntryUpdate",
+        "type": "object"
+      },
+      "PlanPlaceMealOut": {
+        "description": "A free meal from a place, as shown in the week plan.",
+        "properties": {
+          "endTime": {
+            "format": "time",
+            "title": "Endtime",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PlaceMealKind"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "placeId": {
+            "title": "Placeid",
+            "type": "integer"
+          },
+          "placeName": {
+            "title": "Placename",
+            "type": "string"
+          },
+          "startTime": {
+            "format": "time",
+            "title": "Starttime",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "placeId",
+          "placeName",
+          "startTime",
+          "endTime"
+        ],
+        "title": "PlanPlaceMealOut",
         "type": "object"
       },
       "PreferencesIn": {
@@ -1267,6 +1521,226 @@
         "summary": "Fixed lists for forms and filters",
         "tags": [
           "Reference data"
+        ]
+      }
+    },
+    "/api/places": {
+      "get": {
+        "description": "Places within `radiusKm` of a point, nearest first, each with its matching meals and `distanceKm`. Filters apply to meals (`openToday` uses the user's local date; dietary labels must **all** match, vegetarian also accepts vegan). A place is listed only if at least one meal matches.",
+        "operationId": "find_nearby",
+        "parameters": [
+          {
+            "description": "Latitude of the search point, e.g. 51.4613",
+            "in": "query",
+            "name": "lat",
+            "required": true,
+            "schema": {
+              "description": "Latitude of the search point, e.g. 51.4613",
+              "maximum": 90,
+              "minimum": -90,
+              "title": "Lat",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Longitude of the search point, e.g. -0.1149",
+            "in": "query",
+            "name": "lng",
+            "required": true,
+            "schema": {
+              "description": "Longitude of the search point, e.g. -0.1149",
+              "maximum": 180,
+              "minimum": -180,
+              "title": "Lng",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Search radius in km (max 10)",
+            "in": "query",
+            "name": "radiusKm",
+            "required": false,
+            "schema": {
+              "default": 2,
+              "description": "Search radius in km (max 10)",
+              "exclusiveMinimum": 0,
+              "maximum": 10,
+              "title": "Radiuskm",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Only meals served today",
+            "in": "query",
+            "name": "openToday",
+            "required": false,
+            "schema": {
+              "default": false,
+              "description": "Only meals served today",
+              "title": "Opentoday",
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "`hot` meals or food `parcel`s",
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/PlaceMealKind"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "`hot` meals or food `parcel`s",
+              "title": "Kind"
+            }
+          },
+          {
+            "description": "Comma-separated, e.g. `vegetarian,gluten-free`",
+            "in": "query",
+            "name": "dietary",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Comma-separated, e.g. `vegetarian,gluten-free`",
+              "title": "Dietary"
+            }
+          },
+          {
+            "description": "The user's local date (YYYY-MM-DD). Defaults to the server's local date.",
+            "in": "query",
+            "name": "today",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The user's local date (YYYY-MM-DD). Defaults to the server's local date.",
+              "title": "Today"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PlaceOut"
+                  },
+                  "title": "Response Find Nearby",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error: `details.fields` maps each field to a message"
+          }
+        },
+        "summary": "Find free meals nearby",
+        "tags": [
+          "Free meals nearby"
+        ]
+      }
+    },
+    "/api/places/{place_id}": {
+      "get": {
+        "description": "A place with all its meals (`distanceKm` is null here).",
+        "operationId": "get_place",
+        "parameters": [
+          {
+            "description": "Place id",
+            "in": "path",
+            "name": "place_id",
+            "required": true,
+            "schema": {
+              "description": "Place id",
+              "minimum": 1,
+              "title": "Place Id",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The user's local date (YYYY-MM-DD). Defaults to the server's local date.",
+            "in": "query",
+            "name": "today",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The user's local date (YYYY-MM-DD). Defaults to the server's local date.",
+              "title": "Today"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error: `details.fields` maps each field to a message"
+          }
+        },
+        "summary": "Get a place",
+        "tags": [
+          "Free meals nearby"
         ]
       }
     },
@@ -2624,6 +3098,10 @@
     {
       "description": "The week's combined shopping list: scaled, converted and added up, with ticks.",
       "name": "Shopping list"
+    },
+    {
+      "description": "Places sharing free meals or food parcels, searched by distance. Seeded places are demo data.",
+      "name": "Free meals nearby"
     },
     {
       "description": "Fixed lists, units, tags and ingredient suggestions for forms and filters.",

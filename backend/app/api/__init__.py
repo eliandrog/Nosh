@@ -6,12 +6,13 @@ database or return SQLModel tables directly.
 
 from fastapi import APIRouter
 
-from app.api import health, plan, recipes, reference, settings, shopping
+from app.api import health, places, plan, recipes, reference, settings, shopping
 
 api_router = APIRouter(prefix="/api")
 api_router.include_router(recipes.router)
 api_router.include_router(plan.router)
 api_router.include_router(shopping.router)
+api_router.include_router(places.router)
 api_router.include_router(reference.router)
 api_router.include_router(settings.router)
 api_router.include_router(health.router)
@@ -20,6 +21,10 @@ OPENAPI_TAGS = [
     {"name": "Recipes", "description": "Browse, search, filter, create, edit and delete recipes."},
     {"name": "Week plan", "description": "Meals planned per day: real dates, any number of meals a day, servings per meal."},
     {"name": "Shopping list", "description": "The week's combined shopping list: scaled, converted and added up, with ticks."},
+    {
+        "name": "Free meals nearby",
+        "description": "Places sharing free meals or food parcels, searched by distance. Seeded places are demo data.",
+    },
     {"name": "Reference data", "description": "Fixed lists, units, tags and ingredient suggestions for forms and filters."},
     {"name": "Preferences & profile", "description": "The user's dietary preferences and profile (single user, no login)."},
     {"name": "Health", "description": "Service health check."},

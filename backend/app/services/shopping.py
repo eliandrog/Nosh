@@ -49,6 +49,7 @@ def _planned_ingredients(entries: list[PlanEntry]) -> list[PlannedIngredient]:
     return [
         PlannedIngredient(line.ingredient_id, line.quantity, line.unit, entry.servings, entry.recipe.serves)
         for entry in entries
+        if entry.recipe is not None  # free meals from places need no shopping
         for line in entry.recipe.ingredients
     ]
 
@@ -124,6 +125,8 @@ def rebuild_weeks_using_recipe(session: Session, recipe_id: uuid.UUID, today: dt
 def _used_in(entries: list[PlanEntry]) -> dict[int, list[str]]:
     names: dict[int, set[str]] = defaultdict(set)
     for entry in entries:
+        if entry.recipe is None:  # free meals from places need no shopping
+            continue
         for line in entry.recipe.ingredients:
             names[line.ingredient_id].add(entry.recipe.name)
     return {ingredient_id: sorted(n, key=str.lower) for ingredient_id, n in names.items()}
