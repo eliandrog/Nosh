@@ -35,7 +35,7 @@ The API contract is the OpenAPI spec (`/api/openapi.json`), exported to `backend
 uv run python -m app.export_openapi
 ```
 
-**Endpoints so far** (all under `/api`; full docs at `/api/docs`): recipes (list with search and filters, detail with `?servings=` scaling, create, update, delete, usage), reference data (options, units, tags, ingredient suggestions), preferences and profile, health.
+**Endpoints so far** (all under `/api`; full docs at `/api/docs`): recipes (list with search and filters, detail with `?servings=` scaling, create, update, delete, usage), week plan (week, add, change, move, remove, calendar days), shopping list (week list rebuilt from the plan, ticks, clear ticked, dismiss banner), reference data (options, units, tags, ingredient suggestions), preferences and profile, health.
 
 Run tests:
 

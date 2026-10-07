@@ -18,6 +18,7 @@ from app.models import PlanEntry, Recipe
 from app.repositories import plan as plan_repo
 from app.repositories import recipes as recipe_repo
 from app.schemas import PlanDayOut, PlanDaysOut, PlanEntryCreate, PlanEntryOut, PlanEntryUpdate, WeekPlanOut
+from app.services import shopping as shopping_service
 from app.services.recipes import RecipeNotFound
 
 
@@ -72,12 +73,13 @@ def _get_entry(session: Session, entry_id: int) -> PlanEntry:
     return entry
 
 
-def add_entry(session: Session, data: PlanEntryCreate) -> PlanEntryOut:
+def add_entry(session: Session, data: PlanEntryCreate, today: dt.date) -> PlanEntryOut:
     recipe = _active_recipe(session, data.recipe_id)
     position = plan_repo.next_position(session, data.date)
     entry = plan_repo.add(session, PlanEntry(date=data.date, position=position, recipe=recipe, servings=data.servings))
+    session.flush()
+    shopping_service.rebuild_week(session, entry.date, today)
     session.commit()
-    # TODO(shopping-list branch): rebuild this week's shopping list.
     return to_entry_out(entry)
 
 
@@ -92,9 +94,10 @@ def _reorder(session: Session, entry: PlanEntry, position: int) -> None:
         e.position = i
 
 
-def update_entry(session: Session, entry_id: int, data: PlanEntryUpdate) -> PlanEntryOut:
+def update_entry(session: Session, entry_id: int, data: PlanEntryUpdate, today: dt.date) -> PlanEntryOut:
     """Change servings, swap the recipe, move to another day (goes last) and/or reorder within the day."""
     entry = _get_entry(session, entry_id)
+    old_date = entry.date
     if data.recipe_id is not None and data.recipe_id != entry.recipe_id:
         entry.recipe = _active_recipe(session, data.recipe_id)
     if data.servings is not None:
@@ -104,12 +107,17 @@ def update_entry(session: Session, entry_id: int, data: PlanEntryUpdate) -> Plan
         entry.date, entry.position = data.date, position
     if data.position is not None:
         _reorder(session, entry, data.position)
+    session.flush()
+    for week in sorted({week_start(old_date), week_start(entry.date)}):  # a move can change two weeks
+        shopping_service.rebuild_week(session, week, today)
     session.commit()
-    # TODO(shopping-list branch): rebuild affected weeks' shopping lists.
     return to_entry_out(entry)
 
 
-def delete_entry(session: Session, entry_id: int) -> None:
-    plan_repo.remove(session, _get_entry(session, entry_id))
+def delete_entry(session: Session, entry_id: int, today: dt.date) -> None:
+    entry = _get_entry(session, entry_id)
+    day = entry.date
+    plan_repo.remove(session, entry)
+    session.flush()
+    shopping_service.rebuild_week(session, day, today)
     session.commit()
-    # TODO(shopping-list branch): rebuild this week's shopping list.

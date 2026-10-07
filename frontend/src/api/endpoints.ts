@@ -34,9 +34,10 @@ const httpApi = {
   getRecipe: (slug: string, servings?: number) => request<RecipeDetail>('GET', `${slugPath(slug)}${buildQuery({ servings })}`),
   createRecipe: (input: RecipeInput) => request<RecipeDetail>('POST', '/recipes', input),
   updateRecipe: (slug: string, input: RecipeInput) => request<RecipeDetail>('PUT', slugPath(slug), input),
-  deleteRecipe: (slug: string) => request<void>('DELETE', slugPath(slug)),
+  /** `today`: the user's local date, so "upcoming" meals are removed from the right day. */
+  deleteRecipe: (slug: string, today?: string) => request<void>('DELETE', `${slugPath(slug)}${buildQuery({ today })}`),
   // ASSUMPTION (3): usage endpoint for the delete confirmation.
-  getRecipeUsage: (slug: string) => request<RecipeUsage>('GET', `${slugPath(slug)}/usage`),
+  getRecipeUsage: (slug: string, today?: string) => request<RecipeUsage>('GET', `${slugPath(slug)}/usage${buildQuery({ today })}`),
 
   // ASSUMPTION (1): ingredient type-ahead endpoint.
   searchIngredients: (q: string) => request<IngredientSuggestion[]>('GET', `/ingredients${buildQuery({ q })}`),

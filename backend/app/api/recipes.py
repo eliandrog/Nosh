@@ -97,8 +97,8 @@ def create_recipe(session: SessionDep, data: RecipeCreate) -> RecipeDetail:
     description="Replaces a custom recipe. Built-in recipes are read-only. Renaming updates the slug.",
     responses=error_responses(403, 404, 409, 422),
 )
-def update_recipe(session: SessionDep, slug: SlugPath, data: RecipeCreate) -> RecipeDetail:
-    return recipe_service.update_recipe(session, slug, data)
+def update_recipe(session: SessionDep, slug: SlugPath, data: RecipeCreate, today: TodayDep) -> RecipeDetail:
+    return recipe_service.update_recipe(session, slug, data, today)
 
 
 @router.delete(

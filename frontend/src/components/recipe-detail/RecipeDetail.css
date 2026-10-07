@@ -1,0 +1,236 @@
+/* Recipe detail: mint header, facts, labels, ingredients, method, and its sheets. */
+
+.recipe-page__note {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px 0;
+  color: var(--text-muted);
+}
+.recipe-page__missing {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 22px;
+  color: var(--charcoal);
+}
+
+/* Header (mint tint keeps solid green for actions) */
+.recipe-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  margin: -16px -16px 0;
+  padding: 16px;
+  background: var(--nosh-green-tint);
+}
+.recipe-hero__image {
+  font-size: 48px;
+  line-height: 1;
+}
+.recipe-hero__image img {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+}
+.recipe-hero__name {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 28px;
+  line-height: 1.2;
+}
+.recipe-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.recipe-fact {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.recipe-page__body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 16px;
+}
+.recipe-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.recipe-page__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.recipe-page__actions .btn {
+  text-decoration: none;
+}
+.recipe-page__builtin {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Ingredients & method */
+.recipe-card-block {
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+.recipe-card-block__title {
+  margin: 0 0 12px;
+  font-family: var(--font-heading);
+  font-size: 18px;
+}
+.ingredient-list,
+.method-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ingredient-line {
+  display: grid;
+  grid-template-columns: 84px 1fr;
+  gap: 10px;
+}
+.ingredient-line__amount {
+  font-weight: 700;
+  color: var(--teal-dark);
+}
+.method-step {
+  display: flex;
+  gap: 10px;
+}
+.method-step__number {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-pill);
+  background: var(--nosh-green-tint);
+  color: var(--teal-darker);
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Add to my week sheet */
+.add-week__group {
+  margin: 0 0 16px;
+  padding: 0;
+  border: 0;
+}
+.add-week__label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+.day-picker {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+.day-picker__day {
+  min-height: 52px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--charcoal);
+  font: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.day-picker__day--selected {
+  background: var(--charcoal);
+  color: var(--white);
+}
+.day-picker__weekday {
+  font-size: 11px;
+  font-weight: 700;
+}
+.day-picker__date {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 700;
+}
+.add-week__servings {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.add-week__hint,
+.add-week__more {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.add-week__more {
+  margin-top: 8px;
+  font-weight: 700;
+  color: var(--teal-dark);
+}
+.add-week__preview {
+  margin-bottom: 16px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.add-week__preview-title {
+  margin: 0 0 8px;
+  font-weight: 700;
+}
+.add-week__error {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--flame-coral);
+  border-radius: var(--radius-sm);
+  background: var(--coral-tint);
+  color: var(--charcoal);
+}
+.add-week__done {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.add-week__done p {
+  margin: 0;
+}
+
+/* Delete sheet */
+.delete-recipe__text {
+  margin: 0 0 16px;
+}
+.delete-recipe__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.delete-recipe__icon {
+  color: var(--flame-coral);
+}

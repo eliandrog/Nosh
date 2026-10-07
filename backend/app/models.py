@@ -145,8 +145,6 @@ class PlanEntry(SQLModel, table=True):
 
     recipe: Recipe = Relationship()
 
-    recipe: Recipe = Relationship()
-
 
 class ShoppingListItem(SQLModel, table=True):
     """A stored line of a week's shopping list.
@@ -173,6 +171,8 @@ class ShoppingListItem(SQLModel, table=True):
     # wins and the line reads "5 ml + to taste"; if none do, quantity is None ("to taste").
     to_taste: bool = False
     ticked: bool = False
+
+    ingredient: Ingredient = Relationship()
 
 
 class Profile(SQLModel, table=True):
