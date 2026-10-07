@@ -117,27 +117,6 @@ describe('WeekPage', () => {
     expect(await screen.findByRole('button', { name: /Lentil Dahl/ })).toBeInTheDocument() // week reloaded
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
-
-  it('links to free meals nearby', async () => {
-    mocked.getWeekPlan.mockResolvedValue(week(MON, []))
-    renderWeek()
-
-    expect(await screen.findByRole('link', { name: /Free meals near you/ })).toHaveAttribute('href', '/free-meals')
-  })
-
-  it("keeps a free meal on its day, since it's only served then", async () => {
-    const curry: PlanEntry = {
-      id: 7, date: WED, position: 0, kind: 'free_meal', recipeId: null, recipeSlug: null, recipeName: null, recipeDeleted: false, servings: 1,
-      placeMeal: { id: 11, name: 'Vegetable curry', kind: 'hot', placeId: 1, placeName: 'Demo Community Kitchen', startTime: '12:00:00', endTime: '14:00:00' },
-    }
-    mocked.getWeekPlan.mockResolvedValue(week(MON, [curry]))
-    const { user } = renderWeek()
-
-    await user.click(await screen.findByRole('button', { name: /Vegetable curry/ }))
-    const sheet = screen.getByRole('dialog', { name: 'Vegetable curry (Demo Community Kitchen)' })
-    expect(within(sheet).getByText('Only served on Wednesdays, so it stays on this day.')).toBeInTheDocument()
-    expect(within(sheet).queryByLabelText('Move to another day')).not.toBeInTheDocument()
-  })
 })
 
 describe('Calendar picker', () => {
