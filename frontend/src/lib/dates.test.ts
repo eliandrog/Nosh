@@ -1,5 +1,17 @@
 import { describe, expect, it } from 'vitest'
-import { addDays, dayLabel, isValidIsoDate, mondayOf, relativeWeekLabel, toIsoDate, weekRangeLabel } from './dates'
+import {
+  addDays,
+  addMonths,
+  dayLabel,
+  isValidIsoDate,
+  mondayOf,
+  monthGrid,
+  monthLabel,
+  relativeWeekLabel,
+  shortWeekRangeLabel,
+  toIsoDate,
+  weekRangeLabel,
+} from './dates'
 
 describe('dates', () => {
   it('uses the local calendar date, not UTC', () => {
@@ -31,5 +43,26 @@ describe('dates', () => {
     expect(isValidIsoDate('2026-02-30')).toBe(false)
     expect(isValidIsoDate('next-week')).toBe(false)
     expect(isValidIsoDate(null)).toBe(false)
+  })
+})
+
+describe('month calendar helpers', () => {
+  it('builds Monday-first weeks that cover the whole month', () => {
+    const weeks = monthGrid('2026-09') // 1 Sep 2026 is a Tuesday, 30 Sep a Wednesday
+    expect(weeks[0][0]).toBe('2026-08-31')
+    expect(weeks.at(-1)?.at(-1)).toBe('2026-10-04')
+    expect(weeks).toHaveLength(5)
+    expect(weeks.every((w) => w.length === 7)).toBe(true)
+  })
+
+  it('moves between months across year ends', () => {
+    expect(addMonths('2026-12', 1)).toBe('2027-01')
+    expect(addMonths('2026-01', -1)).toBe('2025-12')
+    expect(monthLabel('2026-09')).toBe('September 2026')
+  })
+
+  it('labels a week compactly, including across months', () => {
+    expect(shortWeekRangeLabel('2026-09-21')).toBe('21 – 27 Sept')
+    expect(shortWeekRangeLabel('2026-09-28')).toBe('28 Sept – 4 Oct')
   })
 })
