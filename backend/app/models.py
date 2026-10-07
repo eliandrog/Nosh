@@ -3,8 +3,19 @@
 import datetime as dt
 import uuid
 
-from sqlalchemy import CheckConstraint, UniqueConstraint
+from sqlalchemy import CheckConstraint, Column, UniqueConstraint
+from sqlalchemy import Enum as SAEnum
 from sqlmodel import Field, Relationship, SQLModel
+
+from app.constants import DietaryLabel, MealType
+
+
+def _enum_column(enum: type, name: str) -> Column:
+    """Stored as text, with a CHECK constraint so the DB rejects values outside the enum."""
+    return Column(
+        SAEnum(enum, name=name, native_enum=False, create_constraint=True, values_callable=lambda e: [m.value for m in e]),
+        primary_key=True,
+    )
 
 
 def _now() -> dt.datetime:
@@ -79,14 +90,15 @@ class RecipeMealType(SQLModel, table=True):
     __tablename__ = "recipe_meal_type"
 
     recipe_id: uuid.UUID = Field(foreign_key="recipe.id", primary_key=True, ondelete="CASCADE")
-    meal_type: str = Field(primary_key=True)  # breakfast | lunch | dinner | dessert
+    # At least one per recipe: enforced on input (seed + API), not expressible as a simple constraint.
+    meal_type: MealType = Field(sa_column=_enum_column(MealType, "meal_type"))
 
 
 class RecipeDietary(SQLModel, table=True):
     __tablename__ = "recipe_dietary"
 
     recipe_id: uuid.UUID = Field(foreign_key="recipe.id", primary_key=True, ondelete="CASCADE")
-    label: str = Field(primary_key=True)  # vegetarian | vegan | gluten-free | dairy-free
+    label: DietaryLabel = Field(sa_column=_enum_column(DietaryLabel, "dietary_label"))
 
 
 class Tag(SQLModel, table=True):

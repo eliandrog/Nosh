@@ -9,7 +9,7 @@ import uuid
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
-from app.constants import CUISINES, DIETARY_LABELS, MEAL_TYPES
+from app.constants import CUISINES, DIETARY_LABELS, MEAL_TYPES, DietaryLabel, MealType
 
 
 class ApiModel(BaseModel):
@@ -42,8 +42,8 @@ class RecipeSummary(ApiModel):
     name: str
     cuisine: str
     serves: int
-    meal_types: list[str]
-    dietary: list[str]
+    meal_types: list[MealType]
+    dietary: list[DietaryLabel]
     tags: list[TagOut]
     is_custom: bool
     image_url: str | None
@@ -79,8 +79,8 @@ class RecipeCreate(ApiModel):
     name: str = Field(min_length=1)
     cuisine: str
     serves: int = Field(ge=1)
-    meal_types: list[str] = Field(min_length=1)
-    dietary: list[str] = []
+    meal_types: list[MealType] = Field(min_length=1)  # one or more
+    dietary: list[DietaryLabel] = []  # zero or more
     # ASSUMPTION (4): only existing tag keys here; creating tags inline from the form is deferred.
     tags: list[str] = []
     ingredients: list[IngredientLineIn] = Field(min_length=1)

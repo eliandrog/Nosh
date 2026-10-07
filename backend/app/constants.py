@@ -2,6 +2,7 @@
 GET /api/units and GET /api/options."""
 
 from dataclasses import dataclass
+from enum import StrEnum
 
 
 @dataclass(frozen=True)
@@ -31,8 +32,26 @@ UNITS: tuple[Unit, ...] = (
 )
 UNITS_BY_KEY: dict[str | None, Unit] = {u.key: u for u in UNITS}
 
-MEAL_TYPES: tuple[str, ...] = ("breakfast", "lunch", "dinner", "dessert")
-DIETARY_LABELS: tuple[str, ...] = ("vegetarian", "vegan", "gluten-free", "dairy-free")
+class MealType(StrEnum):
+    """What a recipe suits. A recipe has one or more; used as a filter (the plan has no fixed slots)."""
+
+    BREAKFAST = "breakfast"
+    LUNCH = "lunch"
+    DINNER = "dinner"
+    DESSERT = "dessert"  # shown as "Pudding" in the UI
+
+
+class DietaryLabel(StrEnum):
+    """Fixed list used for filtering. A recipe has zero or more."""
+
+    VEGETARIAN = "vegetarian"
+    VEGAN = "vegan"
+    GLUTEN_FREE = "gluten-free"
+    DAIRY_FREE = "dairy-free"
+
+
+MEAL_TYPES: tuple[str, ...] = tuple(m.value for m in MealType)
+DIETARY_LABELS: tuple[str, ...] = tuple(d.value for d in DietaryLabel)
 CUISINES: tuple[str, ...] = (
     "british",
     "chinese",

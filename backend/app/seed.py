@@ -7,10 +7,10 @@ import json
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 from sqlmodel import Session, select
 
-from app.constants import CUISINES, DIETARY_LABELS, MEAL_TYPES, UNITS_BY_KEY
+from app.constants import CUISINES, UNITS_BY_KEY, DietaryLabel, MealType
 from app.ingredients import merge_key
 from app.models import (
     Ingredient,
@@ -44,8 +44,8 @@ class SeedRecipe(BaseModel):
     id: str
     name: str
     cuisine: Literal[CUISINES]  # type: ignore[valid-type]
-    mealType: list[Literal[MEAL_TYPES]]  # type: ignore[valid-type]
-    dietary: list[Literal[DIETARY_LABELS]]  # type: ignore[valid-type]
+    mealType: list[MealType] = Field(min_length=1)  # one or more
+    dietary: list[DietaryLabel]  # zero or more
     tags: list[str]
     serves: int
     ingredients: list[SeedIngredient]
