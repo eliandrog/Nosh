@@ -23,7 +23,17 @@ uv run uvicorn app.main:app --reload
 
 API: http://localhost:8000 (redirects to the docs) · Docs (Swagger UI): http://localhost:8000/api/docs · OpenAPI spec: http://localhost:8000/api/openapi.json
 
-The SQLite database (`backend/nosh.db`) is created automatically on startup.
+The SQLite database (`backend/nosh.db`) is created and seeded automatically on startup. To start fresh, stop the server and delete `backend/nosh.db`.
+
+> **After pulling changes to the database schema** (`backend/app/models.py`), delete `backend/nosh.db` before starting the backend. There are no migrations yet: tables are created if missing but existing tables are not altered. The starter recipes are reloaded from the JSON automatically. Set `NOSH_DB_PATH` to use a different file (tests use a temporary database).
+
+Logs go to the console in one format with a request id on every line. Set `NOSH_LOG_LEVEL` (default `INFO`) to change the level. Every response carries an `X-Request-ID` header, and API errors return `{"error": {"code", "message", "details", "requestId"}}`.
+
+The API contract is the OpenAPI spec (`/api/openapi.json`), exported to `backend/openapi.json` for the frontend type generator. After changing `backend/app/schemas.py`, re-export it (a test fails if it's out of date):
+
+```bash
+uv run python -m app.export_openapi
+```
 
 Run tests:
 
@@ -56,4 +66,4 @@ npm run preview -- --host   # open the "Network" URL on your phone
 
 ## Data
 
-SQLite database. The 20 starter recipes in `backend/data/project-nosh-sample-recipes.json` (provided with the brief, never modified) will be seeded on first run (not yet implemented).
+SQLite database, accessed with SQLModel. On first run (empty database) the 20 starter recipes in `backend/data/project-nosh-sample-recipes.json` (provided with the brief, never modified) are loaded in one transaction; restarting never duplicates them.

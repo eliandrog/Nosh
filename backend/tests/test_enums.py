@@ -1,0 +1,156 @@
+import json
+
+import pytest
+from pydantic import ValidationError
+from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError
+from sqlmodel import select
+
+from app.constants import MealType
+from app.models import Recipe, RecipeMealType
+from app.schemas import RecipeCreate
+from app.seed import SEED_FILE, SeedRecipe
+
+
+def raw_seed_recipes() -> list[dict]:
+    return json.loads(SEED_FILE.read_text(encoding="utf-8"))
+
+
+def _recipe(session, slug):
+    return session.exec(select(Recipe).where(Recipe.slug == slug)).one()
+
+
+def _create(**overrides):
+    data = {
+        "name": "Test Stew",
+        "cuisine": "british",
+        "serves": 2,
+        "mealTypes": ["dinner"],
+        "ingredients": [{"item": "carrot", "quantity": 1}],
+        "method": ["Cook it."],
+    } | overrides
+    return RecipeCreate.model_validate(data)
+
+
+def test_recipe_can_have_several_meal_types(session):
+    potato = _recipe(session, "jacket-potato-with-cheese-and-beans")
+    assert {m.meal_type for m in potato.meal_types} == {MealType.LUNCH, MealType.DINNER}
+
+
+def test_every_seeded_recipe_has_at_least_one_meal_type(session):
+    assert all(r.meal_types for r in session.exec(select(Recipe)))
+
+
+def test_seed_rejects_recipe_without_meal_type():
+    data = raw_seed_recipes()[0] | {"mealType": []}
+    with pytest.raises(ValidationError):
+        SeedRecipe.model_validate(data)
+
+
+def test_seed_rejects_unknown_meal_type():
+    data = raw_seed_recipes()[0] | {"mealType": ["brunch"]}
+    with pytest.raises(ValidationError):
+        SeedRecipe.model_validate(data)
+
+
+def test_api_create_requires_at_least_one_meal_type():
+    with pytest.raises(ValidationError):
+        _create(mealTypes=[])
+
+
+def test_api_create_accepts_several_meal_types_and_no_dietary_labels():
+    recipe = _create(mealTypes=["lunch", "dinner"])
+    assert recipe.meal_types == [MealType.LUNCH, MealType.DINNER]
+    assert recipe.dietary == []
+
+
+def test_api_create_rejects_unknown_dietary_label():
+    with pytest.raises(ValidationError):
+        _create(dietary=["pescatarian"])
+
+
+def test_database_rejects_meal_type_outside_enum(session):
+    dahl = _recipe(session, "lentil-dahl")
+    with pytest.raises(IntegrityError):
+        session.execute(
+            text("INSERT INTO recipe_meal_type (recipe_id, meal_type) VALUES (:id, 'brunch')"),
+            {"id": dahl.id.hex},
+        )
+        session.commit()
+
+
+def test_database_rejects_dietary_label_outside_enum(session):
+    dahl = _recipe(session, "lentil-dahl")
+    with pytest.raises(IntegrityError):
+        session.execute(
+            text("INSERT INTO recipe_dietary (recipe_id, label) VALUES (:id, 'pescatarian')"),
+            {"id": dahl.id.hex},
+        )
+        session.commit()
+
+
+def test_meal_type_rows_round_trip_as_enum(session):
+    row = session.exec(select(RecipeMealType)).first()
+    assert isinstance(row.meal_type, MealType)
+
+
+def test_every_seeded_recipe_has_a_known_cuisine_and_serves_at_least_one(session):
+    from app.constants import Cuisine
+
+    recipes = session.exec(select(Recipe)).all()
+    assert all(isinstance(r.cuisine, Cuisine) for r in recipes)
+    assert all(r.serves >= 1 for r in recipes)
+
+
+def test_api_create_rejects_unknown_cuisine():
+    with pytest.raises(ValidationError):
+        _create(cuisine="martian")
+
+
+@pytest.mark.parametrize("serves", [0, -1])
+def test_api_create_rejects_serves_below_one(serves):
+    with pytest.raises(ValidationError):
+        _create(serves=serves)
+
+
+def test_seed_rejects_serves_below_one():
+    with pytest.raises(ValidationError):
+        SeedRecipe.model_validate(raw_seed_recipes()[0] | {"serves": 0})
+
+
+def test_seed_rejects_unknown_cuisine():
+    with pytest.raises(ValidationError):
+        SeedRecipe.model_validate(raw_seed_recipes()[0] | {"cuisine": "martian"})
+
+
+def test_database_rejects_serves_below_one(session):
+    session.add(Recipe(slug="zero-serves", name="Zero Serves", cuisine="british", serves=0))
+    with pytest.raises(IntegrityError):
+        session.commit()
+
+
+def test_database_rejects_cuisine_outside_enum(session):
+    with pytest.raises(IntegrityError):
+        session.execute(
+            text(
+                "INSERT INTO recipe (id, slug, name, cuisine, serves, is_custom, deleted) "
+                "VALUES ('0123456789abcdef0123456789abcdef', 'x', 'X', 'martian', 2, 1, 0)"
+            )
+        )
+        session.commit()
+
+
+def test_dietary_preference_accepts_enum_labels(session):
+    from app.constants import DietaryLabel
+    from app.models import DietaryPreference
+
+    session.add_all([DietaryPreference(label=DietaryLabel.VEGETARIAN), DietaryPreference(label=DietaryLabel.GLUTEN_FREE)])
+    session.commit()
+    labels = {p.label for p in session.exec(select(DietaryPreference))}
+    assert labels == {DietaryLabel.VEGETARIAN, DietaryLabel.GLUTEN_FREE}
+
+
+def test_database_rejects_dietary_preference_outside_enum(session):
+    with pytest.raises(IntegrityError):
+        session.execute(text("INSERT INTO dietary_preference (label) VALUES ('pescatarian')"))
+        session.commit()
