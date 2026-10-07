@@ -1,15 +1,18 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { NetworkError } from '../api/client'
 import { api } from '../api/endpoints'
-import type { RecipePage, RecipeSummary } from '../api/types'
+import type { RecipeFilters, RecipePage, RecipeSummary } from '../api/types'
 import { pageOf } from '../test/pages'
+import { COUNT_DELAY_MS } from '../components/recipes/FilterSheet'
 import { PAGE_SIZE, RecipesPage, SEARCH_DELAY_MS } from './RecipesPage'
 
-vi.mock('../api/endpoints', () => ({ api: { listRecipes: vi.fn() } }))
+vi.mock('../api/endpoints', () => ({ api: { listRecipes: vi.fn(), getPreferences: vi.fn(), listTags: vi.fn() } }))
 const listRecipes = vi.mocked(api.listRecipes)
+const getPreferences = vi.mocked(api.getPreferences)
+const listTags = vi.mocked(api.listTags)
 
 function recipe(slug: string, name: string): RecipeSummary {
   return {
@@ -54,6 +57,10 @@ beforeEach(() => {
   vi.useFakeTimers({ shouldAdvanceTime: true })
   listRecipes.mockReset()
   listRecipes.mockResolvedValue(page([])) // safe default: an unexpected call fails an assertion instead of hanging
+  getPreferences.mockReset()
+  getPreferences.mockResolvedValue({ dietary: [] })
+  listTags.mockReset()
+  listTags.mockResolvedValue([])
 })
 afterEach(() => vi.useRealTimers())
 
@@ -187,5 +194,137 @@ describe('RecipesPage pages', () => {
     listRecipes.mockReturnValue(deferred<RecipePage>().promise) // never resolves
     renderPage()
     expect(screen.getByRole('link', { name: /Add your own recipe/ })).toHaveAttribute('href', '/recipes/new')
+  })
+})
+
+describe('RecipesPage header', () => {
+  it('shows the Nosh logo mark beside the title without changing the heading', () => {
+    const { container } = render(
+      <RouterProvider router={createMemoryRouter([{ path: '/recipes', element: <RecipesPage /> }], { initialEntries: ['/recipes'] })} />,
+    )
+
+    expect(screen.getByRole('heading', { level: 1 })).toHaveAccessibleName('Recipes') // logo adds nothing to the name
+
+    const logo = container.querySelector('img.nosh-mark')
+    expect(logo).not.toBeNull()
+    expect(logo).toHaveAttribute('alt', '') // decorative: the title already says where you are
+    expect(logo).toHaveAttribute('width', '36')
+    expect(logo).toHaveAttribute('height', '40') // fixed size: no layout shift while it loads
+  })
+})
+
+describe('RecipesPage filters', () => {
+  const LOW_COST = { key: 'low-cost', name: 'Low cost', isBuiltin: false }
+
+  /** Live counts (pageSize 1) report 7 recipes, or 3 once a meal type is chosen; list calls return Dahl. */
+  function stubCountsAndList() {
+    listRecipes.mockImplementation((f: RecipeFilters = {}) =>
+      Promise.resolve(f.pageSize === 1 ? pageOf([], { pageSize: 1, total: f.mealType?.length ? 3 : 7 }) : page([DAHL])),
+    )
+  }
+  const openSheet = async (user: ReturnType<typeof userEvent.setup>, name: RegExp = /^Filters/) => {
+    await user.click(await screen.findByRole('button', { name }))
+    return screen.getByRole('dialog', { name: 'Filter recipes' })
+  }
+  const lastListCall = () => listRecipes.mock.calls.filter(([f]) => f?.pageSize === PAGE_SIZE).at(-1)?.[0]
+
+  it('starts from saved dietary preferences and shows a live count as choices change', async () => {
+    getPreferences.mockResolvedValue({ dietary: ['vegetarian'] })
+    stubCountsAndList()
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    renderPage()
+
+    const sheet = await openSheet(user, /^Filters, 1 active$/)
+    expect(within(sheet).getByRole('button', { name: /Vegetarian/ })).toHaveAttribute('aria-pressed', 'true')
+    expect(within(sheet).getByText(/from your preferences/)).toBeInTheDocument()
+    expect(await within(sheet).findByRole('button', { name: 'Show 7 recipes' })).toBeInTheDocument()
+
+    await user.click(within(sheet).getByRole('button', { name: 'Dinner' }))
+    await act(() => vi.advanceTimersByTimeAsync(COUNT_DELAY_MS))
+    expect(listRecipes).toHaveBeenLastCalledWith({ page: 1, pageSize: 1, mealType: ['dinner'], dietary: ['vegetarian'] })
+    expect(await within(sheet).findByRole('button', { name: 'Show 3 recipes' })).toBeInTheDocument()
+  })
+
+  it('applies filters from page 1, keeps the search and puts them in the URL', async () => {
+    listTags.mockResolvedValue([LOW_COST])
+    stubCountsAndList()
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    const router = renderPage('/recipes?q=dahl&page=2')
+
+    const sheet = await openSheet(user)
+    await user.click(within(sheet).getByRole('button', { name: 'Dinner' }))
+    await user.click(await within(sheet).findByRole('button', { name: 'Low cost' }))
+    await act(() => vi.advanceTimersByTimeAsync(COUNT_DELAY_MS))
+    await user.click(await within(sheet).findByRole('button', { name: 'Show 3 recipes' }))
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(new URLSearchParams(router.state.location.search).toString()).toBe('q=dahl&mealType=dinner&tag=low-cost')
+    expect(lastListCall()).toEqual({ q: 'dahl', page: 1, pageSize: PAGE_SIZE, mealType: ['dinner'], tag: ['low-cost'] })
+    expect(await screen.findByText('1 recipe for “dahl” · 2 filters')).toBeInTheDocument()
+  })
+
+  it('restores filters from the URL and removes one with its chip', async () => {
+    getPreferences.mockResolvedValue({ dietary: ['vegetarian'] })
+    listTags.mockResolvedValue([LOW_COST])
+    stubCountsAndList()
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    const router = renderPage('/recipes?mealType=dinner&dietary=vegan&tag=low-cost')
+
+    expect(await screen.findByText('Lentil Dahl')).toBeInTheDocument()
+    expect(lastListCall()).toEqual({ page: 1, pageSize: PAGE_SIZE, mealType: ['dinner'], dietary: ['vegan'], tag: ['low-cost'] })
+    const chips = screen.getByRole('list', { name: 'Active filters' })
+    expect(await within(chips).findByRole('button', { name: 'Remove filter: Low cost' })).toBeInTheDocument()
+
+    await user.click(within(chips).getByRole('button', { name: 'Remove filter: Vegan' }))
+    // The only dietary filter was removed: say so explicitly, or saved preferences would come back.
+    expect(new URLSearchParams(router.state.location.search).get('all')).toBe('true')
+    expect(lastListCall()).toEqual({ page: 1, pageSize: PAGE_SIZE, mealType: ['dinner'], tag: ['low-cost'], all: true })
+  })
+
+  it('turning off a saved dietary preference sends all=true', async () => {
+    getPreferences.mockResolvedValue({ dietary: ['vegetarian'] })
+    stubCountsAndList()
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    const router = renderPage()
+
+    const sheet = await openSheet(user, /^Filters, 1 active$/)
+    await user.click(within(sheet).getByRole('button', { name: /Vegetarian/ }))
+    await act(() => vi.advanceTimersByTimeAsync(COUNT_DELAY_MS))
+    await user.click(await within(sheet).findByRole('button', { name: 'Show 7 recipes' }))
+
+    expect(router.state.location.search).toBe('?all=true')
+    expect(lastListCall()).toEqual({ page: 1, pageSize: PAGE_SIZE, all: true })
+    expect(screen.getByRole('button', { name: 'Filters' })).toBeInTheDocument() // nothing active any more
+  })
+
+  it('choosing exactly the saved preferences stops pinning dietary in the URL', async () => {
+    getPreferences.mockResolvedValue({ dietary: ['vegetarian'] })
+    stubCountsAndList()
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    const router = renderPage('/recipes?dietary=vegan')
+
+    const sheet = await openSheet(user, /^Filters, 1 active$/)
+    await user.click(within(sheet).getByRole('button', { name: /Vegan/ }))
+    await user.click(within(sheet).getByRole('button', { name: /Vegetarian/ }))
+    await act(() => vi.advanceTimersByTimeAsync(COUNT_DELAY_MS))
+    await user.click(await within(sheet).findByRole('button', { name: 'Show 7 recipes' }))
+
+    // Same as saved preferences: not stored, so the list keeps following the latest saved preferences.
+    expect(router.state.location.search).toBe('')
+    expect(lastListCall()).toEqual({ page: 1, pageSize: PAGE_SIZE })
+  })
+
+  it('offers to clear filters when nothing matches', async () => {
+    getPreferences.mockResolvedValue({ dietary: ['vegetarian'] })
+    listRecipes.mockResolvedValueOnce(page([], { total: 0 })).mockResolvedValue(page([DAHL, SOUP]))
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    const router = renderPage('/recipes?mealType=dessert&dietary=vegan')
+
+    expect(await screen.findByText('No recipes match these filters.')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Clear filters' }))
+
+    expect(await screen.findByText('Tomato Soup')).toBeInTheDocument()
+    expect(router.state.location.search).toBe('?all=true')
+    expect(lastListCall()).toEqual({ page: 1, pageSize: PAGE_SIZE, all: true })
   })
 })
