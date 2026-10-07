@@ -95,12 +95,10 @@ def test_active_recipe_names_must_be_unique(session):
 
 
 def test_soft_deleted_name_can_be_reused(session):
-    import datetime as dt
-
     old = _custom("Nan's Veggie Stew", "nans-veggie-stew")
     session.add(old)
     session.commit()
-    old.deleted_at = dt.datetime.now(dt.UTC)
+    old.deleted = True
     session.add(old)
     session.commit()
     session.add(_custom("Nan's Veggie Stew", "nans-veggie-stew-2"))

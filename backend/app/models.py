@@ -17,7 +17,7 @@ class Recipe(SQLModel, table=True):
             "ux_recipe_name_key_active",
             "name_key",
             unique=True,
-            sqlite_where=text("deleted_at IS NULL"),
+            sqlite_where=text("deleted = 0"),
         ),
     )
 
@@ -28,8 +28,7 @@ class Recipe(SQLModel, table=True):
     serves: int = Field(ge=1)
     is_custom: bool = False
     image_url: str | None = None
-    created_at: dt.datetime = Field(default_factory=_now)
-    deleted_at: dt.datetime | None = None
+    deleted: bool = False  # soft delete
 
     ingredients: list["RecipeIngredient"] = Relationship(
         back_populates="recipe",
