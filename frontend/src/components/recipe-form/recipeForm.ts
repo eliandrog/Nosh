@@ -6,7 +6,9 @@ export type IngredientRow = {
   id: string
   quantity: string // kept as text while typing; blank = "to taste"
   unit: string // '' = counted items ("item"), matching the API's null unit
-  item: string
+  /** Set when picked from the dropdown (or just added); typing again clears it. */
+  ingredientId: number | null
+  item: string // the ingredient's name as shown in the field
   prep: string
 }
 
@@ -26,7 +28,7 @@ export type RecipeForm = {
 let nextId = 0
 const newId = (prefix: string) => `${prefix}-${++nextId}`
 
-export const emptyIngredient = (): IngredientRow => ({ id: newId('ing'), quantity: '', unit: 'g', item: '', prep: '' })
+export const emptyIngredient = (): IngredientRow => ({ id: newId('ing'), quantity: '', unit: 'g', ingredientId: null, item: '', prep: '' })
 export const emptyStep = (): MethodStep => ({ id: newId('step'), text: '' })
 
 export const emptyForm = (): RecipeForm => ({
@@ -82,7 +84,8 @@ export function toSubmission(form: RecipeForm): Submission {
       ingredients: ingredientRows.map((i) => {
         const row = form.ingredients[i]
         return {
-          item: row.item.trim(),
+          // Picked ingredients go by id; anything typed but not picked falls back to the name.
+          ...(row.ingredientId !== null ? { ingredientId: row.ingredientId } : { item: row.item.trim() }),
           quantity: filled(row.quantity) ? Number(row.quantity) : null,
           unit: row.unit === '' ? null : row.unit,
           prep: filled(row.prep) ? row.prep.trim() : null,
@@ -137,6 +140,7 @@ export function fromRecipe(recipe: RecipeDetail): RecipeForm {
       id: newId('ing'),
       quantity: line.quantity === null ? '' : String(line.quantity),
       unit: line.unit ?? '',
+      ingredientId: line.ingredientId,
       item: line.item,
       prep: line.prep ?? '',
     })),
