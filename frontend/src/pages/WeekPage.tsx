@@ -94,6 +94,7 @@ export function WeekPage() {
         onClose={() => setOpenEntryId(null)}
         onServings={(servings) => openEntry && change(() => api.updatePlanEntry(openEntry.id, { servings }))}
         onMove={(date) => openEntry && change(() => api.updatePlanEntry(openEntry.id, { date }), true)}
+        onSwap={(recipeId) => openEntry && change(() => api.updatePlanEntry(openEntry.id, { recipeId }), true)}
         onRemove={() => openEntry && change(() => api.deletePlanEntry(openEntry.id), true)}
       />
     </>

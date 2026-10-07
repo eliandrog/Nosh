@@ -272,6 +272,11 @@ export const mockApi: Api = {
     const entry = planEntries.find((e) => e.id === id)
     if (!entry) return Promise.reject(new ApiError(404, { code: 'plan_entry_not_found', message: "We couldn't find that meal in your plan.", requestId: 'mock' }))
     if (patch.servings) entry.servings = patch.servings
+    if (patch.recipeId && patch.recipeId !== entry.recipeId) {
+      const r = [...recipes.values()].find((x) => x.id === patch.recipeId)
+      if (!r) return notFound()
+      Object.assign(entry, { recipeId: r.id, recipeSlug: r.slug, recipeName: r.name, recipeDeleted: false })
+    }
     if (patch.date && patch.date !== entry.date) {
       entry.position = planEntries.filter((e) => e.date === patch.date).length
       entry.date = patch.date

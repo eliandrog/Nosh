@@ -5,6 +5,7 @@ import { dayLabel, longDayLabel } from '../../lib/dates'
 import type { IsoDate } from '../../lib/dates'
 import { TrashIcon } from '../icons'
 import { BottomSheet, Button, Stepper } from '../ui'
+import { RecipePicker } from './RecipePicker'
 
 type MealOptionsSheetProps = {
   entry: PlanEntry | null
@@ -13,14 +14,30 @@ type MealOptionsSheetProps = {
   onClose: () => void
   onServings: (servings: number) => void
   onMove: (date: IsoDate) => void
+  onSwap: (recipeId: string) => void
   onRemove: () => void
 }
 
-/** Tap a planned meal: change servings, view the recipe, move it to another day, or remove it. */
-export function MealOptionsSheet({ entry, weekDays, busy, onClose, onServings, onMove, onRemove }: MealOptionsSheetProps) {
+/** Tap a planned meal: change servings, view the recipe, swap it, move it to another day, or remove it. */
+export function MealOptionsSheet({ entry, weekDays, busy, onClose, onServings, onMove, onSwap, onRemove }: MealOptionsSheetProps) {
   const moveId = useId()
   const [moveTo, setMoveTo] = useState<IsoDate>('')
+  const [swapping, setSwapping] = useState(false)
   if (!entry) return null
+
+  if (swapping) {
+    return (
+      <BottomSheet open title={`Swap ${entry.recipeName}`} onClose={onClose}>
+        <p className="meal-sheet__day">
+          {longDayLabel(entry.date)} · keeps {entry.servings} {entry.servings === 1 ? 'serving' : 'servings'}
+        </p>
+        <button type="button" className="meal-sheet__swap-back" onClick={() => setSwapping(false)}>
+          ‹ Back to meal options
+        </button>
+        <RecipePicker excludeId={entry.recipeId} disabled={busy} onPick={(r) => onSwap(r.id)} />
+      </BottomSheet>
+    )
+  }
 
   const otherDays = weekDays.filter((d) => d !== entry.date)
   return (
@@ -37,6 +54,10 @@ export function MealOptionsSheet({ entry, weekDays, busy, onClose, onServings, o
           View recipe
         </Link>
       )}
+
+      <Button variant="outline" block disabled={busy} onClick={() => setSwapping(true)}>
+        Swap for another recipe
+      </Button>
 
       <div className="meal-sheet__move">
         <label htmlFor={moveId} className="form-label">
