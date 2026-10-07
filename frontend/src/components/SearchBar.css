@@ -1,0 +1,52 @@
+.search-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: var(--tap);
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.search-bar:focus-within {
+  border-color: var(--deep-teal);
+}
+.search-bar__icon {
+  position: absolute;
+  left: 14px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+.search-bar__input {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--tap);
+  padding: 0 4px 0 42px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 16px; /* 16px stops iOS zooming in on focus */
+  color: var(--charcoal);
+}
+.search-bar__input::placeholder {
+  color: var(--text-muted);
+}
+.search-bar__input:focus {
+  outline: none;
+}
+/* Hide the browser's own clear button; we show our own 44px one. */
+.search-bar__input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+.search-bar__clear {
+  width: var(--tap);
+  height: var(--tap);
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-pill);
+}

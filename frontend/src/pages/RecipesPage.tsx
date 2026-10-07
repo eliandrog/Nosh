@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import { errorMessage } from '../api/client'
 import { api } from '../api/endpoints'
 import type { RecipeSummary } from '../api/types'
 import { PageHeader } from '../components/Layout'
+import { SearchBar } from '../components/SearchBar'
 import { Button, Chip } from '../components/ui'
 import { PlusIcon } from '../components/icons'
+import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import './RecipesPage.css'
 
 const title = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).replace(/-/g, ' ')
@@ -40,41 +42,91 @@ function RecipeCard({ recipe }: { recipe: RecipeSummary }) {
   )
 }
 
-type State = { status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; recipes: RecipeSummary[] }
+type State =
+  | { status: 'loading' }
+  | { status: 'error'; message: string }
+  | { status: 'ready'; recipes: RecipeSummary[]; query: string }
+
+export const SEARCH_DELAY_MS = 300
 
 export function RecipesPage() {
+  const [params, setParams] = useSearchParams()
+  const [text, setText] = useState(() => params.get('q') ?? '')
+  const debounced = useDebouncedValue(text.trim(), SEARCH_DELAY_MS)
+  const query = text.trim() === '' ? '' : debounced // clearing is instant; typing waits for a pause
   const [state, setState] = useState<State>({ status: 'loading' })
   const [attempt, setAttempt] = useState(0)
 
+  // Keep the search in the URL (/recipes?q=dahl) so back, refresh and shared links keep it.
   useEffect(() => {
-    let cancelled = false
+    setParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        if (query) next.set('q', query)
+        else next.delete('q')
+        return next
+      },
+      { replace: true },
+    )
+  }, [query, setParams])
+
+  useEffect(() => {
+    let cancelled = false // ignores replies to older searches that arrive late
     api
-      .listRecipes()
-      .then((recipes) => !cancelled && setState({ status: 'ready', recipes }))
+      .listRecipes({ q: query || undefined })
+      .then((recipes) => !cancelled && setState({ status: 'ready', recipes, query }))
       .catch((e) => !cancelled && setState({ status: 'error', message: errorMessage(e, 'Something went wrong loading recipes') }))
     return () => {
       cancelled = true
     }
-  }, [attempt])
+  }, [query, attempt])
+
+  // Results on screen are for an older query while the new search is in flight.
+  const searching = state.status === 'ready' && state.query !== query
+
+  const retry = () => {
+    setState({ status: 'loading' })
+    setAttempt((a) => a + 1)
+  }
 
   return (
     <>
       <PageHeader title="Recipes" />
+      <div className="recipes__search">
+        <SearchBar value={text} onChange={setText} label="Search recipes" placeholder="Search recipes or ingredients" />
+      </div>
+
       {state.status === 'loading' && <p className="recipes__note">Loading recipes…</p>}
+
       {state.status === 'error' && (
         <div className="recipes__note" role="alert">
           <p>{state.message}</p>
-          <Button variant="outline" onClick={() => { setState({ status: 'loading' }); setAttempt((a) => a + 1) }}>
+          <Button variant="outline" onClick={retry}>
             Try again
           </Button>
         </div>
       )}
+
       {state.status === 'ready' && (
         <>
+          <p className="recipes__count" aria-live="polite">
+            {searching ? 'Searching…' : resultText(state.recipes.length, state.query)}
+          </p>
           {state.recipes.length === 0 ? (
-            <p className="recipes__note">No recipes match your preferences yet.</p>
+            <div className="recipes__note">
+              {state.query ? (
+                <>
+                  <p>No recipes match “{state.query}”. Try another word or an ingredient.</p>
+                  <Button variant="outline" onClick={() => setText('')}>
+                    Show all recipes
+                  </Button>
+                </>
+              ) : (
+                <p>No recipes match your preferences yet.</p>
+              )}
+            </div>
           ) : (
-            <ul className="recipes__list">
+            <ul className={`recipes__list${searching ? ' recipes__list--stale' : ''}`}>
               {state.recipes.map((r) => (
                 <li key={r.id}>
                   <RecipeCard recipe={r} />
@@ -89,4 +141,9 @@ export function RecipesPage() {
       )}
     </>
   )
+}
+
+function resultText(count: number, query: string): string {
+  const recipes = `${count} ${count === 1 ? 'recipe' : 'recipes'}`
+  return query ? `${recipes} for “${query}”` : recipes
 }
