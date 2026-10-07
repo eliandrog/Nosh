@@ -74,6 +74,22 @@
         "title": "ErrorResponse",
         "type": "object"
       },
+      "IngredientIn": {
+        "description": "POST /api/ingredients: add an ingredient to the dropdown (or get the existing one).",
+        "properties": {
+          "name": {
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "IngredientIn",
+        "type": "object"
+      },
       "IngredientLine": {
         "properties": {
           "ingredientId": {
@@ -129,8 +145,21 @@
       },
       "IngredientLineIn": {
         "properties": {
+          "ingredientId": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ingredientid"
+          },
           "item": {
-            "minLength": 1,
+            "default": "",
+            "maxLength": 60,
             "title": "Item",
             "type": "string"
           },
@@ -169,10 +198,30 @@
             "title": "Unit"
           }
         },
-        "required": [
-          "item"
-        ],
         "title": "IngredientLineIn",
+        "type": "object"
+      },
+      "IngredientOut": {
+        "properties": {
+          "created": {
+            "title": "Created",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "created"
+        ],
+        "title": "IngredientOut",
         "type": "object"
       },
       "IngredientSuggestion": {
@@ -1145,6 +1194,56 @@
           }
         },
         "summary": "Suggest ingredient names",
+        "tags": [
+          "Reference data"
+        ]
+      },
+      "post": {
+        "description": "Adds a new ingredient for the recipe form's dropdown. If one with the same merge key already exists (e.g. `Onions` and `onion`), returns it with **200** and `created: false` instead of a duplicate.",
+        "operationId": "create_ingredient",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IngredientIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IngredientOut"
+                }
+              }
+            },
+            "description": "Already existed; the existing ingredient"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IngredientOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error: `details.fields` maps each field to a message"
+          }
+        },
+        "summary": "Add an ingredient",
         "tags": [
           "Reference data"
         ]
