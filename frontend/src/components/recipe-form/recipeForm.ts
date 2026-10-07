@@ -1,6 +1,6 @@
 // Form state, validation and payload mapping for "Add your own recipe".
 // Pure functions only, so the rules are easy to test and reuse for "Edit recipe" later.
-import type { Cuisine, DietaryLabel, FieldErrors, MealType, RecipeInput } from '../../api/types'
+import type { Cuisine, DietaryLabel, FieldErrors, MealType, RecipeDetail, RecipeInput } from '../../api/types'
 
 export type IngredientRow = {
   id: string
@@ -123,3 +123,23 @@ export const DIETARY_LABELS: Record<DietaryLabel, string> = {
 }
 
 export const titleCase = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+
+/** Pre-fills the form from a saved recipe (for "Edit recipe"). */
+export function fromRecipe(recipe: RecipeDetail): RecipeForm {
+  return {
+    name: recipe.name,
+    serves: recipe.serves,
+    cuisine: recipe.cuisine,
+    mealTypes: recipe.mealTypes,
+    dietary: recipe.dietary,
+    tags: recipe.tags.map((t) => t.name),
+    ingredients: recipe.ingredients.map((line) => ({
+      id: newId('ing'),
+      quantity: line.quantity === null ? '' : String(line.quantity),
+      unit: line.unit ?? '',
+      item: line.item,
+      prep: line.prep ?? '',
+    })),
+    method: recipe.method.map((text) => ({ id: newId('step'), text })),
+  }
+}

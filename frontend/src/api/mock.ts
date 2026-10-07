@@ -214,18 +214,29 @@ export const mockApi: Api = {
     if (!existing.isCustom) return Promise.reject(new ApiError(403, { code: 'recipe_read_only', message: "Built-in recipes can't be edited.", requestId: 'mock' }))
     const errors = validate(input, slug)
     if (Object.keys(errors).length) return invalid(errors)
-    const r = fromInput(slug, input, existing.id)
-    recipes.set(slug, r)
+    // Renaming changes the slug (like the real API); the id stays the same.
+    let newSlug = slugify(input.name)
+    for (let n = 2; newSlug !== slug && recipes.has(newSlug); n++) newSlug = `${slugify(input.name)}-${n}`
+    const r = fromInput(newSlug, input, existing.id)
+    recipes.delete(slug)
+    recipes.set(newSlug, r)
     return delay(r)
   },
-  deleteRecipe: (slug) => {
+  deleteRecipe: (slug, today) => {
     const existing = recipes.get(slug)
     if (!existing) return notFound()
     if (!existing.isCustom) return Promise.reject(new ApiError(403, { code: 'recipe_read_only', message: 'Only your own recipes can be deleted.', requestId: 'mock' }))
     recipes.delete(slug)
+    const from = today ?? isoDate(new Date())
+    planEntries = planEntries.filter((e) => e.recipeId !== existing.id || e.date < from) // past weeks keep it
     return delay(undefined)
   },
-  getRecipeUsage: () => delay({ upcomingMeals: 0 }),
+  getRecipeUsage: (slug, today) => {
+    const r = recipes.get(slug)
+    if (!r) return notFound()
+    const from = today ?? isoDate(new Date())
+    return delay({ upcomingMeals: planEntries.filter((e) => e.recipeId === r.id && e.date >= from).length })
+  },
 
   searchIngredients: (q) => {
     const s = q.trim().toLowerCase()
