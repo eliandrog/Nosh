@@ -101,3 +101,7 @@ def is_empty(session: Session) -> bool:
 def add(session: Session, recipe: Recipe) -> Recipe:
     session.add(recipe)
     return recipe
+
+
+def get_by_id(session: Session, recipe_id: uuid.UUID) -> Recipe | None:
+    return session.get(Recipe, recipe_id)
