@@ -253,6 +253,80 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/shopping-list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a week's shopping list
+         * @description Everything the week's meals need, scaled by servings, converted (kg→g, l/tsp/tbsp→ml) and added up. Current and future weeks are recalculated from the plan; past weeks show what was shopped for. `changes` is set when the list changed since the banner was last dismissed.
+         */
+        get: operations["get_shopping_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/shopping-list/changes/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Dismiss the 'List updated' banner */
+        post: operations["dismiss_changes"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/shopping-list/items/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Tick or untick an item */
+        patch: operations["set_ticked"];
+        trace?: never;
+    };
+    "/api/shopping-list/ticks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Clear ticked items
+         * @description Unticks every item on that week's list.
+         */
+        delete: operations["clear_ticked"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/tags": {
         parameters: {
             query?: never;
@@ -842,7 +916,10 @@ export interface operations {
     };
     add_entry: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description The user's local date (YYYY-MM-DD). Defaults to the server's local date. */
+                today?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -884,7 +961,10 @@ export interface operations {
     };
     delete_entry: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description The user's local date (YYYY-MM-DD). Defaults to the server's local date. */
+                today?: string | null;
+            };
             header?: never;
             path: {
                 /** @description Plan entry id */
@@ -923,7 +1003,10 @@ export interface operations {
     };
     update_entry: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description The user's local date (YYYY-MM-DD). Defaults to the server's local date. */
+                today?: string | null;
+            };
             header?: never;
             path: {
                 /** @description Plan entry id */
@@ -1204,7 +1287,10 @@ export interface operations {
     };
     update_recipe: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description The user's local date (YYYY-MM-DD). Defaults to the server's local date. */
+                today?: string | null;
+            };
             header?: never;
             path: {
                 /** @description Recipe slug, e.g. `lentil-dahl` */
@@ -1348,6 +1434,149 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
+            };
+            /** @description Validation error: `details.fields` maps each field to a message */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_shopping_list: {
+        parameters: {
+            query?: {
+                /** @description Any date in the week (YYYY-MM-DD); defaults to today */
+                week?: string | null;
+                /** @description The user's local date (YYYY-MM-DD). Defaults to the server's local date. */
+                today?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShoppingListOut"];
+                };
+            };
+            /** @description Validation error: `details.fields` maps each field to a message */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    dismiss_changes: {
+        parameters: {
+            query?: {
+                /** @description Any date in the week (YYYY-MM-DD); defaults to today */
+                week?: string | null;
+                /** @description The user's local date (YYYY-MM-DD). Defaults to the server's local date. */
+                today?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation error: `details.fields` maps each field to a message */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    set_ticked: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Shopping list item id */
+                item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShoppingTickIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShoppingListItemOut"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation error: `details.fields` maps each field to a message */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    clear_ticked: {
+        parameters: {
+            query?: {
+                /** @description Any date in the week (YYYY-MM-DD); defaults to today */
+                week?: string | null;
+                /** @description The user's local date (YYYY-MM-DD). Defaults to the server's local date. */
+                today?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation error: `details.fields` maps each field to a message */
             422: {

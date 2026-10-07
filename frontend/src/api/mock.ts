@@ -17,6 +17,7 @@ import type {
   RecipeFilters,
   RecipeInput,
   RecipeSummary,
+  ShoppingItem,
   Tag,
   Unit,
 } from './types'
@@ -185,6 +186,41 @@ const mondayOf = (d = new Date()) => {
   return isoDate(m)
 }
 
+// Shopping list (simplified: no unit conversion or "used in" ordering rules; the real API does the full maths).
+const ticked = new Set<string>()
+const shoppingKey = (weekStart: string, ingredientId: number, unit: string) => `${weekStart}|${ingredientId}|${unit}`
+
+function mockShoppingItems(weekStart: string): ShoppingItem[] {
+  const end = isoDate(new Date(new Date(`${weekStart}T00:00:00`).getTime() + 6 * 86_400_000))
+  const lines = new Map<string, ShoppingItem>()
+  for (const entry of planEntries.filter((e) => e.date >= weekStart && e.date <= end)) {
+    const recipe = [...recipes.values()].find((r) => r.id === entry.recipeId)
+    if (!recipe) continue
+    for (const line of recipe.ingredients) {
+      const unit = line.unit ?? 'item'
+      const key = shoppingKey(weekStart, line.ingredientId, unit)
+      const current = lines.get(key) ?? {
+        id: lines.size + 1,
+        ingredientId: line.ingredientId,
+        name: line.item,
+        unit,
+        quantity: null,
+        toTaste: false,
+        ticked: ticked.has(key),
+        usedIn: [],
+      }
+      if (line.quantity === null) current.toTaste = true
+      else current.quantity = (current.quantity ?? 0) + (line.quantity * entry.servings) / recipe.serves
+      if (!current.usedIn.includes(recipe.name)) current.usedIn.push(recipe.name)
+      lines.set(key, current)
+    }
+  }
+  return [...lines.values()].map((i) => ({
+    ...i,
+    quantity: i.quantity === null ? null : ['g', 'ml'].includes(i.unit) ? Math.round(i.quantity) : Math.ceil(i.quantity),
+  }))
+}
+
 export const mockApi: Api = {
   getOptions: () =>
     delay({
@@ -227,18 +263,29 @@ export const mockApi: Api = {
     if (!existing.isCustom) return Promise.reject(new ApiError(403, { code: 'recipe_read_only', message: "Built-in recipes can't be edited.", requestId: 'mock' }))
     const errors = validate(input, slug)
     if (Object.keys(errors).length) return invalid(errors)
-    const r = fromInput(slug, input, existing.id)
-    recipes.set(slug, r)
+    // Renaming changes the slug (like the real API); the id stays the same.
+    let newSlug = slugify(input.name)
+    for (let n = 2; newSlug !== slug && recipes.has(newSlug); n++) newSlug = `${slugify(input.name)}-${n}`
+    const r = fromInput(newSlug, input, existing.id)
+    recipes.delete(slug)
+    recipes.set(newSlug, r)
     return delay(r)
   },
-  deleteRecipe: (slug) => {
+  deleteRecipe: (slug, today) => {
     const existing = recipes.get(slug)
     if (!existing) return notFound()
     if (!existing.isCustom) return Promise.reject(new ApiError(403, { code: 'recipe_read_only', message: 'Only your own recipes can be deleted.', requestId: 'mock' }))
     recipes.delete(slug)
+    const from = today ?? isoDate(new Date())
+    planEntries = planEntries.filter((e) => e.recipeId !== existing.id || e.date < from) // past weeks keep it
     return delay(undefined)
   },
-  getRecipeUsage: () => delay({ upcomingMeals: 0 }),
+  getRecipeUsage: (slug, today) => {
+    const r = recipes.get(slug)
+    if (!r) return notFound()
+    const from = today ?? isoDate(new Date())
+    return delay({ upcomingMeals: planEntries.filter((e) => e.recipeId === r.id && e.date >= from).length })
+  },
 
   searchIngredients: (q) => {
     const s = q.trim().toLowerCase()
@@ -286,8 +333,23 @@ export const mockApi: Api = {
   },
   getPlannedDays: (month) => delay({ month, dates: [...new Set(planEntries.map((e) => e.date).filter((d) => d.startsWith(month)))].sort() }),
 
-  getShoppingList: (week) => delay({ weekStart: mondayOf(week ? new Date(`${week}T00:00:00`) : new Date()), items: [], changes: null }),
-  setTicked: () => Promise.reject(new ApiError(501, { code: 'not_implemented', message: 'Not available in mock mode.', requestId: 'mock' })),
-  clearTicked: () => delay(undefined),
+  getShoppingList: (week) => {
+    const weekStart = mondayOf(week ? new Date(`${week}T00:00:00`) : new Date())
+    return delay({ weekStart, items: mockShoppingItems(weekStart), changes: null })
+  },
+  setTicked: (itemId, value) => {
+    const weekStart = mondayOf(new Date())
+    const item = mockShoppingItems(weekStart).find((i) => i.id === itemId)
+    if (!item) return Promise.reject(new ApiError(404, { code: 'shopping_item_not_found', message: "We couldn't find that item on your list.", requestId: 'mock' }))
+    const key = shoppingKey(weekStart, item.ingredientId, item.unit)
+    if (value) ticked.add(key)
+    else ticked.delete(key)
+    return delay({ ...item, ticked: value })
+  },
+  clearTicked: (week) => {
+    const weekStart = mondayOf(new Date(`${week}T00:00:00`))
+    for (const key of [...ticked]) if (key.startsWith(`${weekStart}|`)) ticked.delete(key)
+    return delay(undefined)
+  },
   dismissChanges: () => delay(undefined),
 }
