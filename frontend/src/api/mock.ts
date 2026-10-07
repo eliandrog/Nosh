@@ -194,7 +194,20 @@ export const mockApi: Api = {
     }),
   getUnits: () => delay(UNITS),
 
-  listRecipes: (f = {}) => delay([...recipes.values()].filter((r) => matches(r, f, preferences.dietary)).map(summary)),
+  listRecipes: (f = {}) => {
+    const matching = [...recipes.values()]
+      .filter((r) => matches(r, f, preferences.dietary))
+      .sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
+    const page = f.page ?? 1
+    const pageSize = f.pageSize ?? 20
+    return delay({
+      items: matching.slice((page - 1) * pageSize, page * pageSize).map(summary),
+      total: matching.length,
+      page,
+      pageSize,
+      totalPages: Math.max(1, Math.ceil(matching.length / pageSize)),
+    })
+  },
   getRecipe: (slug, servings) => {
     const r = recipes.get(slug)
     return r ? delay(scaled(r, servings)) : notFound()

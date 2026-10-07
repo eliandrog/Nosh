@@ -58,6 +58,87 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a week's plan
+         * @description Monday to Sunday with each day's meals in order. `week` can be any date in the week; defaults to today.
+         */
+        get: operations["get_week"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/plan/days": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Days with meals in a month
+         * @description For the calendar picker's dots.
+         */
+        get: operations["planned_days"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/plan/entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add a meal to a day
+         * @description The meal goes last on that day. Unlimited meals per day.
+         */
+        post: operations["add_entry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/plan/entries/{entry_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove a meal from the plan */
+        delete: operations["delete_entry"];
+        options?: never;
+        head?: never;
+        /**
+         * Change a planned meal
+         * @description Change servings, swap the recipe, move it to another day (goes last there) or reorder it within its day.
+         */
+        patch: operations["update_entry"];
+        trace?: never;
+    };
     "/api/preferences": {
         parameters: {
             query?: never;
@@ -108,8 +189,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * List recipes
-         * @description Search and filter recipes. Dietary filter defaults to the saved preferences unless `dietary` is given or `all=true`. Dietary labels must **all** match (vegetarian also accepts vegan); meal types and tags match **any**. Search covers recipe names and ingredients.
+         * List recipes (paged)
+         * @description Search and filter recipes, one page at a time (ordered by name). Dietary filter defaults to the saved preferences unless `dietary` is given or `all=true`. Dietary labels must **all** match (vegetarian also accepts vegan); meal types and tags match **any**. Search covers recipe names and ingredients. A page past the end returns no items with the correct `total`.
          */
         get: operations["list_recipes"];
         put?: never;
@@ -363,25 +444,13 @@ export interface components {
          * @description PATCH /api/plan/entries/{id}: change servings, swap recipe, move day or reorder.
          */
         PlanEntryUpdate: {
-            /**
-             * Date
-             * @default null
-             */
+            /** Date */
             date?: string | null;
-            /**
-             * Position
-             * @default null
-             */
+            /** Position */
             position?: number | null;
-            /**
-             * Recipeid
-             * @default null
-             */
+            /** Recipeid */
             recipeId?: string | null;
-            /**
-             * Servings
-             * @default null
-             */
+            /** Servings */
             servings?: number | null;
         };
         /** PreferencesIn */
@@ -477,6 +546,22 @@ export interface components {
             slug: string;
             /** Tags */
             tags: components["schemas"]["TagOut"][];
+        };
+        /**
+         * RecipePage
+         * @description GET /api/recipes: one page of results. A page past the end has no items but the right totals.
+         */
+        RecipePage: {
+            /** Items */
+            items: components["schemas"]["RecipeSummary"][];
+            /** Page */
+            page: number;
+            /** Pagesize */
+            pageSize: number;
+            /** Total */
+            total: number;
+            /** Totalpages */
+            totalPages: number;
         };
         /**
          * RecipeSummary
@@ -689,6 +774,198 @@ export interface operations {
             };
         };
     };
+    get_week: {
+        parameters: {
+            query?: {
+                /** @description Any date in the week (YYYY-MM-DD) */
+                week?: string | null;
+                /** @description The user's local date (YYYY-MM-DD). Defaults to the server's local date. */
+                today?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WeekPlanOut"];
+                };
+            };
+            /** @description Validation error: `details.fields` maps each field to a message */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    planned_days: {
+        parameters: {
+            query: {
+                /** @description YYYY-MM */
+                month: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanDaysOut"];
+                };
+            };
+            /** @description Validation error: `details.fields` maps each field to a message */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    add_entry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanEntryCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanEntryOut"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation error: `details.fields` maps each field to a message */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    delete_entry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Plan entry id */
+                entry_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation error: `details.fields` maps each field to a message */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    update_entry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Plan entry id */
+                entry_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanEntryUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanEntryOut"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation error: `details.fields` maps each field to a message */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     get_preferences: {
         parameters: {
             query?: never;
@@ -808,6 +1085,10 @@ export interface operations {
                 tag?: string | null;
                 /** @description Ignore saved dietary preferences */
                 all?: boolean;
+                /** @description Page number, starting at 1 */
+                page?: number;
+                /** @description Recipes per page */
+                pageSize?: number;
             };
             header?: never;
             path?: never;
@@ -821,7 +1102,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RecipeSummary"][];
+                    "application/json": components["schemas"]["RecipePage"];
                 };
             };
             /** @description Validation error: `details.fields` maps each field to a message */

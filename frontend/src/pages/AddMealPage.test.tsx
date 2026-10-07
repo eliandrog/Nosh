@@ -4,6 +4,7 @@ import { createMemoryRouter, RouterProvider, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { api } from '../api/endpoints'
 import type { PlanEntry, Profile, RecipeSummary } from '../api/types'
+import { pageOf } from '../test/pages'
 import { AddMealPage } from './AddMealPage'
 
 vi.mock('../api/endpoints', () => ({
@@ -44,7 +45,7 @@ function renderAddMeal(profile: Profile) {
 
 beforeEach(() => {
   vi.resetAllMocks()
-  mocked.listRecipes.mockResolvedValue([DAHL])
+  mocked.listRecipes.mockResolvedValue(pageOf([DAHL]))
   mocked.addPlanEntry.mockResolvedValue({ id: 1 } as PlanEntry)
 })
 

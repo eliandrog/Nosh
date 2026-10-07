@@ -14,7 +14,7 @@ import type {
   RecipeDetail,
   RecipeFilters,
   RecipeInput,
-  RecipeSummary,
+  RecipePage,
   RecipeUsage,
   ShoppingItem,
   ShoppingList,
@@ -30,7 +30,10 @@ const httpApi = {
   getUnits: () => request<Unit[]>('GET', '/units'),
 
   listRecipes: (f: RecipeFilters = {}) =>
-    request<RecipeSummary[]>('GET', `/recipes${buildQuery({ q: f.q, mealType: f.mealType, dietary: f.dietary, tag: f.tag, all: f.all })}`),
+    request<RecipePage>(
+      'GET',
+      `/recipes${buildQuery({ q: f.q, mealType: f.mealType, dietary: f.dietary, tag: f.tag, all: f.all, page: f.page, pageSize: f.pageSize })}`,
+    ),
   getRecipe: (slug: string, servings?: number) => request<RecipeDetail>('GET', `${slugPath(slug)}${buildQuery({ servings })}`),
   createRecipe: (input: RecipeInput) => request<RecipeDetail>('POST', '/recipes', input),
   updateRecipe: (slug: string, input: RecipeInput) => request<RecipeDetail>('PUT', slugPath(slug), input),

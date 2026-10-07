@@ -12,10 +12,13 @@ import './settings.css'
 
 type Counts = { suitable: number; total: number }
 
-/** How many recipes suit these labels, out of all recipes. */
+/** How many recipes suit these labels, out of all recipes (only the totals are needed, so ask for 1 item). */
 async function countRecipes(dietary: DietaryLabel[]): Promise<Counts> {
-  const [suitable, all] = await Promise.all([api.listRecipes({ dietary }), api.listRecipes({ all: true })])
-  return { suitable: suitable.length, total: all.length }
+  const [suitable, all] = await Promise.all([
+    api.listRecipes({ dietary, pageSize: 1 }),
+    api.listRecipes({ all: true, pageSize: 1 }),
+  ])
+  return { suitable: suitable.total, total: all.total }
 }
 
 type State = { status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; selected: DietaryLabel[] }
