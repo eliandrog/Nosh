@@ -4,6 +4,7 @@ import { errorMessage } from '../api/client'
 import { api } from '../api/endpoints'
 import type { RecipePage, RecipeSummary } from '../api/types'
 import { PageHeader } from '../components/Layout'
+import { NoshMark } from '../components/NoshMark'
 import { Pagination } from '../components/Pagination'
 import { SearchBar } from '../components/SearchBar'
 import { Button, Chip } from '../components/ui'
@@ -116,7 +117,7 @@ export function RecipesPage() {
 
   return (
     <div className="recipes" ref={topRef}>
-      <PageHeader title="Recipes" />
+      <PageHeader title="Recipes" logo={<NoshMark />} />
       <div className="recipes__search">
         <SearchBar value={text} onChange={setText} label="Search recipes" placeholder="Search recipes or ingredients" />
       </div>

@@ -189,3 +189,19 @@ describe('RecipesPage pages', () => {
     expect(screen.getByRole('link', { name: /Add your own recipe/ })).toHaveAttribute('href', '/recipes/new')
   })
 })
+
+describe('RecipesPage header', () => {
+  it('shows the Nosh logo mark beside the title without changing the heading', () => {
+    const { container } = render(
+      <RouterProvider router={createMemoryRouter([{ path: '/recipes', element: <RecipesPage /> }], { initialEntries: ['/recipes'] })} />,
+    )
+
+    expect(screen.getByRole('heading', { level: 1 })).toHaveAccessibleName('Recipes') // logo adds nothing to the name
+
+    const logo = container.querySelector('img.nosh-mark')
+    expect(logo).not.toBeNull()
+    expect(logo).toHaveAttribute('alt', '') // decorative: the title already says where you are
+    expect(logo).toHaveAttribute('width', '36')
+    expect(logo).toHaveAttribute('height', '40') // fixed size: no layout shift while it loads
+  })
+})

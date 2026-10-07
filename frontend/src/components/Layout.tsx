@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { Outlet } from 'react-router'
 import { TabBar } from './TabBar'
 import './Layout.css'
@@ -13,12 +14,16 @@ export function Layout() {
   )
 }
 
-type PageHeaderProps = { title: string; subtitle?: string }
+type PageHeaderProps = { title: string; subtitle?: string; logo?: ReactNode }
 
-export function PageHeader({ title, subtitle }: PageHeaderProps) {
+/** `logo` (optional) sits left of the title on the same row; it must be decorative (alt=""). */
+export function PageHeader({ title, subtitle, logo }: PageHeaderProps) {
   return (
     <header className="page-header">
-      <h1 className="page-header__title">{title}</h1>
+      <div className="page-header__row">
+        {logo}
+        <h1 className="page-header__title">{title}</h1>
+      </div>
       {subtitle && <p className="page-header__subtitle">{subtitle}</p>}
     </header>
   )

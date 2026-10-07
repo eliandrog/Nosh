@@ -12,8 +12,21 @@
   margin-bottom: 16px;
 }
 
+.page-header__row {
+  display: flex;
+  align-items: center;
+  gap: 12px; /* clear space around the logo mark */
+}
+
 .page-header__title {
   font-size: 28px;
+}
+
+.nosh-mark {
+  flex-shrink: 0;
+  width: 36px;
+  height: 40px;
+  object-fit: contain;
 }
 
 .page-header__subtitle {
