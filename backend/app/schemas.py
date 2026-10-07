@@ -81,7 +81,7 @@ class RecipeCreate(ApiModel):
     serves: int = Field(ge=1)
     meal_types: list[MealType] = Field(min_length=1)  # one or more
     dietary: list[DietaryLabel] = []  # zero or more
-    # ASSUMPTION (4): only existing tag keys here; creating tags inline from the form is deferred.
+    # Zero or more tag names; any that don't exist yet are created on save (see app/tags.py).
     tags: list[str] = []
     ingredients: list[IngredientLineIn] = Field(min_length=1)
     method: list[str] = Field(min_length=1)
