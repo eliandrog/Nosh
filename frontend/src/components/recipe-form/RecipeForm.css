@@ -1,0 +1,220 @@
+/* "Add your own recipe" form. Brand tokens only (see index.css / TECHNICAL.md "Colours"). */
+.recipe-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 24px;
+}
+
+.recipe-form__top {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+}
+.recipe-form__cancel {
+  min-height: var(--tap);
+  display: inline-flex;
+  align-items: center;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+.recipe-form__title {
+  font-size: 18px;
+}
+.recipe-form__status {
+  padding: 24px 0;
+  color: var(--text-muted);
+}
+
+/* Fields */
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.form-field--grow {
+  flex: 1;
+}
+.form-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.form-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  padding: 0;
+}
+.text-input {
+  min-height: var(--tap);
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  font: inherit;
+  font-size: 16px; /* 16px stops iOS zooming in on focus */
+  color: var(--charcoal);
+}
+.text-input::placeholder {
+  color: var(--text-muted);
+}
+.text-input:focus {
+  outline: none;
+  border-color: var(--deep-teal);
+}
+.text-input[aria-invalid='true'] {
+  border: 2px solid var(--flame-coral);
+}
+.pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.new-tag-btn,
+.add-row-btn {
+  min-height: var(--tap);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  border-radius: var(--radius-pill);
+  border: 1px dashed var(--deep-teal);
+  background: transparent;
+  color: var(--teal-dark);
+  font-weight: 700;
+  cursor: pointer;
+}
+.add-row-btn {
+  border: 0;
+  padding: 0;
+  align-self: flex-start;
+}
+.new-tag {
+  display: flex;
+  gap: 8px;
+}
+
+/* Errors: coral icon/border, Charcoal text (coral text fails AA) */
+.field-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--charcoal);
+}
+.field-error__icon {
+  color: var(--flame-coral);
+  flex-shrink: 0;
+}
+.error-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: var(--coral-tint);
+  border: 1px solid var(--flame-coral);
+  color: var(--charcoal);
+  font-weight: 700;
+}
+.error-summary p {
+  margin: 0;
+}
+
+/* Cards */
+.form-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+.form-card__title {
+  font-size: 18px;
+}
+
+.ingredient-list,
+.step-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ingredient-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.ingredient-card__main {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.ingredient-card__qty {
+  width: 64px;
+  flex-shrink: 0;
+}
+.ingredient-card__unit {
+  width: 84px;
+  flex-shrink: 0;
+  padding-right: 4px;
+}
+.ingredient-card__item {
+  flex: 1;
+  min-width: 0;
+}
+.ingredient-card__remove {
+  width: var(--tap);
+  height: var(--tap);
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 26px 1fr auto;
+  gap: 8px;
+  align-items: start;
+}
+.step .field-error {
+  grid-column: 2 / -1;
+}
+.step__number {
+  width: 26px;
+  height: 26px;
+  margin-top: 9px;
+  border-radius: var(--radius-pill);
+  background: var(--nosh-green-tint);
+  color: var(--teal-darker);
+  font-size: 13px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.step__text {
+  resize: vertical;
+}
