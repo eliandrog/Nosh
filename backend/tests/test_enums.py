@@ -92,3 +92,49 @@ def test_database_rejects_dietary_label_outside_enum(session):
 def test_meal_type_rows_round_trip_as_enum(session):
     row = session.exec(select(RecipeMealType)).first()
     assert isinstance(row.meal_type, MealType)
+
+
+def test_every_seeded_recipe_has_a_known_cuisine_and_serves_at_least_one(session):
+    from app.constants import Cuisine
+
+    recipes = session.exec(select(Recipe)).all()
+    assert all(isinstance(r.cuisine, Cuisine) for r in recipes)
+    assert all(r.serves >= 1 for r in recipes)
+
+
+def test_api_create_rejects_unknown_cuisine():
+    with pytest.raises(ValidationError):
+        _create(cuisine="martian")
+
+
+@pytest.mark.parametrize("serves", [0, -1])
+def test_api_create_rejects_serves_below_one(serves):
+    with pytest.raises(ValidationError):
+        _create(serves=serves)
+
+
+def test_seed_rejects_serves_below_one():
+    with pytest.raises(ValidationError):
+        SeedRecipe.model_validate(raw_seed_recipes()[0] | {"serves": 0})
+
+
+def test_seed_rejects_unknown_cuisine():
+    with pytest.raises(ValidationError):
+        SeedRecipe.model_validate(raw_seed_recipes()[0] | {"cuisine": "martian"})
+
+
+def test_database_rejects_serves_below_one(session):
+    session.add(Recipe(slug="zero-serves", name="Zero Serves", cuisine="british", serves=0))
+    with pytest.raises(IntegrityError):
+        session.commit()
+
+
+def test_database_rejects_cuisine_outside_enum(session):
+    with pytest.raises(IntegrityError):
+        session.execute(
+            text(
+                "INSERT INTO recipe (id, slug, name, cuisine, serves, is_custom, deleted) "
+                "VALUES ('0123456789abcdef0123456789abcdef', 'x', 'X', 'martian', 2, 1, 0)"
+            )
+        )
+        session.commit()

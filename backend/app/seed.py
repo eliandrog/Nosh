@@ -5,12 +5,11 @@ recipe table is empty, so restarting the app never creates duplicates."""
 
 import json
 from pathlib import Path
-from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 from sqlmodel import Session, select
 
-from app.constants import CUISINES, UNITS_BY_KEY, DietaryLabel, MealType
+from app.constants import UNITS_BY_KEY, Cuisine, DietaryLabel, MealType
 from app.ingredients import merge_key
 from app.models import (
     Ingredient,
@@ -43,11 +42,11 @@ class SeedIngredient(BaseModel):
 class SeedRecipe(BaseModel):
     id: str
     name: str
-    cuisine: Literal[CUISINES]  # type: ignore[valid-type]
+    cuisine: Cuisine
     mealType: list[MealType] = Field(min_length=1)  # one or more
     dietary: list[DietaryLabel]  # zero or more
     tags: list[str]
-    serves: int
+    serves: int = Field(ge=1)
     ingredients: list[SeedIngredient]
     method: list[str]
 

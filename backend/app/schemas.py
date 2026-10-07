@@ -9,7 +9,7 @@ import uuid
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
-from app.constants import CUISINES, DIETARY_LABELS, MEAL_TYPES, DietaryLabel, MealType
+from app.constants import CUISINES, DIETARY_LABELS, MEAL_TYPES, Cuisine, DietaryLabel, MealType
 
 
 class ApiModel(BaseModel):
@@ -40,7 +40,7 @@ class RecipeSummary(ApiModel):
     id: uuid.UUID  # stable internal id
     slug: str  # used in URLs: /api/recipes/{slug}
     name: str
-    cuisine: str
+    cuisine: Cuisine
     serves: int
     meal_types: list[MealType]
     dietary: list[DietaryLabel]
@@ -77,8 +77,8 @@ class RecipeCreate(ApiModel):
     """POST /api/recipes and PUT /api/recipes/{id} (custom recipes only)."""
 
     name: str = Field(min_length=1)
-    cuisine: str
-    serves: int = Field(ge=1)
+    cuisine: Cuisine
+    serves: int = Field(ge=1)  # always 1 or more
     meal_types: list[MealType] = Field(min_length=1)  # one or more
     dietary: list[DietaryLabel] = []  # zero or more
     # Zero or more tag names; any that don't exist yet are created on save (see app/tags.py).

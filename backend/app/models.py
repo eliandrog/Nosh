@@ -7,14 +7,15 @@ from sqlalchemy import CheckConstraint, Column, UniqueConstraint
 from sqlalchemy import Enum as SAEnum
 from sqlmodel import Field, Relationship, SQLModel
 
-from app.constants import DietaryLabel, MealType
+from app.constants import Cuisine, DietaryLabel, MealType
 
 
-def _enum_column(enum: type, name: str) -> Column:
+def _enum_column(enum: type, name: str, primary_key: bool = False) -> Column:
     """Stored as text, with a CHECK constraint so the DB rejects values outside the enum."""
     return Column(
         SAEnum(enum, name=name, native_enum=False, create_constraint=True, values_callable=lambda e: [m.value for m in e]),
-        primary_key=True,
+        primary_key=primary_key,
+        nullable=False,
     )
 
 
@@ -23,14 +24,17 @@ def _now() -> dt.datetime:
 
 
 class Recipe(SQLModel, table=True):
+    # Table models aren't validated by SQLModel, so rules live in the DB too.
+    __table_args__ = (CheckConstraint("serves >= 1", name="ck_recipe_serves"),)
+
     # Stable internal identifier; all other tables link to this, so renames never break links.
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     # URL-friendly name ("nans-veggie-stew"), see app/recipe_ids.py. Unique across all recipes,
     # deleted ones included, so a slug is never reused; active-name clashes are blocked in code.
     slug: str = Field(unique=True, index=True)
     name: str
-    cuisine: str
-    serves: int = Field(ge=1)
+    cuisine: Cuisine = Field(sa_column=_enum_column(Cuisine, "cuisine"))
+    serves: int  # always 1 or more (DB check + API schema)
     is_custom: bool = False
     image_url: str | None = None
     deleted: bool = False  # soft delete
@@ -91,14 +95,14 @@ class RecipeMealType(SQLModel, table=True):
 
     recipe_id: uuid.UUID = Field(foreign_key="recipe.id", primary_key=True, ondelete="CASCADE")
     # At least one per recipe: enforced on input (seed + API), not expressible as a simple constraint.
-    meal_type: MealType = Field(sa_column=_enum_column(MealType, "meal_type"))
+    meal_type: MealType = Field(sa_column=_enum_column(MealType, "meal_type", primary_key=True))
 
 
 class RecipeDietary(SQLModel, table=True):
     __tablename__ = "recipe_dietary"
 
     recipe_id: uuid.UUID = Field(foreign_key="recipe.id", primary_key=True, ondelete="CASCADE")
-    label: DietaryLabel = Field(sa_column=_enum_column(DietaryLabel, "dietary_label"))
+    label: DietaryLabel = Field(sa_column=_enum_column(DietaryLabel, "dietary_label", primary_key=True))
 
 
 class Tag(SQLModel, table=True):

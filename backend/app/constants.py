@@ -52,16 +52,20 @@ class DietaryLabel(StrEnum):
 
 MEAL_TYPES: tuple[str, ...] = tuple(m.value for m in MealType)
 DIETARY_LABELS: tuple[str, ...] = tuple(d.value for d in DietaryLabel)
-CUISINES: tuple[str, ...] = (
-    "british",
-    "chinese",
-    "indian",
-    "italian",
-    "mediterranean",
-    "mexican",
-    "thai",
-    "other",
-)
+class Cuisine(StrEnum):
+    """Fixed list; every recipe has exactly one. "other" covers anything not listed."""
+
+    BRITISH = "british"
+    CHINESE = "chinese"
+    INDIAN = "indian"
+    ITALIAN = "italian"
+    MEDITERRANEAN = "mediterranean"
+    MEXICAN = "mexican"
+    THAI = "thai"
+    OTHER = "other"
+
+
+CUISINES: tuple[str, ...] = tuple(c.value for c in Cuisine)
 
 # ASSUMPTION (5): default recipe images are an emoji per first meal type for now;
 # outline icons can replace these later without an API change.
