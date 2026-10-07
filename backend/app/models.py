@@ -1,0 +1,162 @@
+"""SQLModel tables. See TECHNICAL.md "Database schema" for the diagram and rules."""
+
+import datetime as dt
+
+from sqlalchemy import CheckConstraint, Index, UniqueConstraint, text
+from sqlmodel import Field, Relationship, SQLModel
+
+
+def _now() -> dt.datetime:
+    return dt.datetime.now(dt.UTC)
+
+
+class Recipe(SQLModel, table=True):
+    __table_args__ = (
+        # Active names are unique; soft-deleted names can be reused.
+        Index(
+            "ux_recipe_name_key_active",
+            "name_key",
+            unique=True,
+            sqlite_where=text("deleted_at IS NULL"),
+        ),
+    )
+
+    id: str = Field(primary_key=True)  # slug, never reused
+    name: str
+    name_key: str
+    cuisine: str
+    serves: int = Field(ge=1)
+    is_custom: bool = False
+    image_url: str | None = None
+    created_at: dt.datetime = Field(default_factory=_now)
+    deleted_at: dt.datetime | None = None
+
+    ingredients: list["RecipeIngredient"] = Relationship(
+        back_populates="recipe",
+        sa_relationship_kwargs={"order_by": "RecipeIngredient.position", "cascade": "all, delete-orphan"},
+    )
+    method_steps: list["MethodStep"] = Relationship(
+        back_populates="recipe",
+        sa_relationship_kwargs={"order_by": "MethodStep.position", "cascade": "all, delete-orphan"},
+    )
+    meal_types: list["RecipeMealType"] = Relationship(
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"},
+    )
+    dietary: list["RecipeDietary"] = Relationship(
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"},
+    )
+    tags: list["RecipeTag"] = Relationship(
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"},
+    )
+
+
+class Ingredient(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    name: str  # first-seen spelling, used for display
+    name_key: str = Field(unique=True)  # merge key (lowercase -> alias -> plural rule)
+
+
+class RecipeIngredient(SQLModel, table=True):
+    __tablename__ = "recipe_ingredient"
+
+    recipe_id: str = Field(foreign_key="recipe.id", primary_key=True, ondelete="CASCADE")
+    position: int = Field(primary_key=True)
+    ingredient_id: int = Field(foreign_key="ingredient.id", index=True)
+    quantity: float | None = None  # None = "to taste"
+    unit: str | None = None  # None = counted items
+    prep: str | None = None
+
+    recipe: Recipe = Relationship(back_populates="ingredients")
+    ingredient: Ingredient = Relationship()
+
+
+class MethodStep(SQLModel, table=True):
+    __tablename__ = "method_step"
+    __table_args__ = (UniqueConstraint("recipe_id", "position"),)
+
+    id: int | None = Field(default=None, primary_key=True)
+    recipe_id: str = Field(foreign_key="recipe.id", index=True, ondelete="CASCADE")
+    position: int
+    text: str
+
+    recipe: Recipe = Relationship(back_populates="method_steps")
+
+
+class RecipeMealType(SQLModel, table=True):
+    __tablename__ = "recipe_meal_type"
+
+    recipe_id: str = Field(foreign_key="recipe.id", primary_key=True, ondelete="CASCADE")
+    meal_type: str = Field(primary_key=True)  # breakfast | lunch | dinner | dessert
+
+
+class RecipeDietary(SQLModel, table=True):
+    __tablename__ = "recipe_dietary"
+
+    recipe_id: str = Field(foreign_key="recipe.id", primary_key=True, ondelete="CASCADE")
+    label: str = Field(primary_key=True)  # vegetarian | vegan | gluten-free | dairy-free
+
+
+class Tag(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    key: str = Field(unique=True)  # e.g. "low-cost"
+    name: str  # e.g. "Low cost"
+    is_builtin: bool = False
+
+
+class RecipeTag(SQLModel, table=True):
+    __tablename__ = "recipe_tag"
+
+    recipe_id: str = Field(foreign_key="recipe.id", primary_key=True, ondelete="CASCADE")
+    tag_id: int = Field(foreign_key="tag.id", primary_key=True, ondelete="CASCADE")
+
+    tag: Tag = Relationship()
+
+
+class PlanEntry(SQLModel, table=True):
+    __tablename__ = "plan_entry"
+    __table_args__ = (CheckConstraint("servings >= 1", name="ck_plan_entry_servings"),)
+
+    id: int | None = Field(default=None, primary_key=True)
+    date: dt.date = Field(index=True)
+    position: int = 0  # order within the day; unlimited meals per day
+    # Kept for soft-deleted recipes so past weeks still show them.
+    recipe_id: str = Field(foreign_key="recipe.id", index=True)
+    servings: int = 1
+    created_at: dt.datetime = Field(default_factory=_now)
+
+
+class ShoppingTick(SQLModel, table=True):
+    __tablename__ = "shopping_tick"
+
+    week_start: dt.date = Field(primary_key=True)  # Monday
+    line_key: str = Field(primary_key=True)  # ingredient_id + unit group
+    ticked_at: dt.datetime = Field(default_factory=_now)
+
+
+class Profile(SQLModel, table=True):
+    id: int = Field(default=1, primary_key=True)  # single row
+    name: str | None = None
+    email: str | None = None
+    household_size: int | None = Field(default=None, ge=1)
+
+
+class DietaryPreference(SQLModel, table=True):
+    __tablename__ = "dietary_preference"
+
+    label: str = Field(primary_key=True)
+
+
+__all__ = [
+    "DietaryPreference",
+    "Ingredient",
+    "MethodStep",
+    "PlanEntry",
+    "Profile",
+    "Recipe",
+    "RecipeDietary",
+    "RecipeIngredient",
+    "RecipeMealType",
+    "RecipeTag",
+    "ShoppingTick",
+    "Tag",
+]
