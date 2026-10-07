@@ -18,6 +18,7 @@ from app.core.config import settings
 from app.core.errors import register_exception_handlers
 from app.core.logging import configure_logging
 from app.core.middleware import REQUEST_ID_HEADER, RequestContextMiddleware
+from app.core.openapi import install_contract_openapi
 from app.db import init_db
 
 
@@ -49,6 +50,7 @@ def create_app() -> FastAPI:
     app.add_middleware(RequestContextMiddleware)  # outermost: every request gets an id and an access log line
     register_exception_handlers(app)
     app.include_router(api_router)
+    install_contract_openapi(app)
 
     @app.get("/", include_in_schema=False)
     def root() -> RedirectResponse:

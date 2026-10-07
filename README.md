@@ -29,6 +29,12 @@ The SQLite database (`backend/nosh.db`) is created and seeded automatically on s
 
 Logs go to the console in one format with a request id on every line. Set `NOSH_LOG_LEVEL` (default `INFO`) to change the level. Every response carries an `X-Request-ID` header, and API errors return `{"error": {"code", "message", "details", "requestId"}}`.
 
+The API contract is the OpenAPI spec (`/api/openapi.json`), exported to `backend/openapi.json` for the frontend type generator. After changing `backend/app/schemas.py`, re-export it (a test fails if it's out of date):
+
+```bash
+uv run python -m app.export_openapi
+```
+
 Run tests:
 
 ```bash

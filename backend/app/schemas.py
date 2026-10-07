@@ -4,6 +4,7 @@ JSON is camelCase on the wire; Python stays snake_case. These are kept separate
 from the SQLModel tables so the API contract can differ from the storage shape.
 Errors use app.core.errors.ErrorResponse: {"error": {code, message, details?, requestId}}."""
 
+import datetime as dt
 import uuid
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -98,3 +99,147 @@ class IngredientSuggestion(ApiModel):
 
     id: int
     name: str
+
+
+class TagIn(ApiModel):
+    """POST /api/tags (the recipe form can also send new tag names directly)."""
+
+    name: str = Field(min_length=1, max_length=40)
+
+
+# ---------- Settings ----------
+
+
+class PreferencesOut(ApiModel):
+    dietary: list[DietaryLabel]
+
+
+class PreferencesIn(ApiModel):
+    dietary: list[DietaryLabel] = []
+
+
+class ProfileOut(ApiModel):
+    name: str | None
+    email: str | None
+    household_size: int | None  # default servings when adding a meal
+
+
+class ProfileIn(ApiModel):
+    name: str | None = Field(default=None, max_length=100)
+    email: str | None = Field(default=None, max_length=254, pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+    household_size: int | None = Field(default=None, ge=1)
+
+
+# ---------- Week plan ----------
+
+
+class PlanEntryOut(ApiModel):
+    id: int
+    date: dt.date
+    position: int  # order within the day
+    recipe_id: uuid.UUID
+    recipe_slug: str
+    recipe_name: str
+    recipe_deleted: bool  # past meals can show "(deleted)"
+    servings: int
+
+
+class PlanDayOut(ApiModel):
+    date: dt.date
+    entries: list[PlanEntryOut]
+
+
+class WeekPlanOut(ApiModel):
+    """GET /api/plan?week=YYYY-MM-DD (any date in the week; defaults to this week)."""
+
+    week_start: dt.date  # Monday
+    days: list[PlanDayOut]  # always 7, Monday to Sunday
+
+
+class PlanEntryCreate(ApiModel):
+    """POST /api/plan/entries. The meal goes last on that day."""
+
+    date: dt.date
+    recipe_id: uuid.UUID
+    servings: int = Field(ge=1)
+
+
+class PlanEntryUpdate(ApiModel):
+    """PATCH /api/plan/entries/{id}: change servings, swap recipe, move day or reorder."""
+
+    date: dt.date | None = None
+    position: int | None = Field(default=None, ge=0)
+    recipe_id: uuid.UUID | None = None
+    servings: int | None = Field(default=None, ge=1)
+
+
+class PlanDaysOut(ApiModel):
+    """GET /api/plan/days?month=YYYY-MM: days with meals, for the calendar dots."""
+
+    month: str
+    dates: list[dt.date]
+
+
+# ---------- Shopping list ----------
+
+
+class ShoppingListItemOut(ApiModel):
+    id: int
+    ingredient_id: int
+    name: str
+    unit: str  # "g", "ml", "item", "tin", ...
+    quantity: float | None  # None with toTaste = "to taste"
+    to_taste: bool  # amount + toTaste reads "5 ml + to taste"
+    ticked: bool
+    used_in: list[str]  # recipe names planned this week that use it (computed live)
+
+
+class ShoppingListChangesOut(ApiModel):
+    added: int
+    removed: int
+    changed: int
+
+
+class ShoppingListOut(ApiModel):
+    """GET /api/shopping-list?week=YYYY-MM-DD."""
+
+    week_start: dt.date
+    items: list[ShoppingListItemOut]
+    changes: ShoppingListChangesOut | None  # None = no "List updated" banner to show
+
+
+class ShoppingTickIn(ApiModel):
+    """PATCH /api/shopping-list/items/{id}."""
+
+    ticked: bool
+
+
+# Published in the OpenAPI spec (components.schemas) even before their endpoints exist,
+# so the frontend can generate its TypeScript types from one source of truth.
+CONTRACT_MODELS: tuple[type[BaseModel], ...] = (
+    UnitOut,
+    OptionsOut,
+    TagOut,
+    TagIn,
+    RecipeSummary,
+    RecipeDetail,
+    IngredientLine,
+    IngredientLineIn,
+    RecipeCreate,
+    RecipeUsageOut,
+    IngredientSuggestion,
+    PreferencesOut,
+    PreferencesIn,
+    ProfileOut,
+    ProfileIn,
+    PlanEntryOut,
+    PlanDayOut,
+    WeekPlanOut,
+    PlanEntryCreate,
+    PlanEntryUpdate,
+    PlanDaysOut,
+    ShoppingListItemOut,
+    ShoppingListChangesOut,
+    ShoppingListOut,
+    ShoppingTickIn,
+)
