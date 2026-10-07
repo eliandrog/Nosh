@@ -26,7 +26,7 @@ TODAY = dt.date(2026, 10, 7)
 def make_recipe(*, is_custom: bool = False, name: str = "Lentil Dahl", slug: str = "lentil-dahl") -> Recipe:
     """A real, typed Recipe built in memory (no database), with its related rows."""
     batch_cook = Tag(id=1, key="batch-cook", name="Batch-cook", is_builtin=True)
-    lentils, onion, salt = Ingredient(id=1, name="red lentils", name_key="red lentil"), Ingredient(
+    lentils, onion, salt = Ingredient(id=1, name="red lentils", name_key="red-lentil"), Ingredient(
         id=2, name="onion", name_key="onion"
     ), Ingredient(id=3, name="salt", name_key="salt")
     recipe = Recipe(

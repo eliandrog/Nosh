@@ -59,7 +59,7 @@ def list_summaries(session: Session, query: RecipeQuery) -> list[Recipe]:
         stmt = stmt.where(col(Recipe.id).in_(tagged))
     if query.q:
         like = f"%{query.q.strip().lower()}%"
-        with_ingredient = select(RecipeIngredient.recipe_id).join(Ingredient).where(col(Ingredient.name_key).like(like))
+        with_ingredient = select(RecipeIngredient.recipe_id).join(Ingredient).where(func.lower(Ingredient.name).like(like))
         stmt = stmt.where(func.lower(Recipe.name).like(like) | col(Recipe.id).in_(with_ingredient))
 
     return list(session.exec(stmt.order_by(func.lower(Recipe.name))))

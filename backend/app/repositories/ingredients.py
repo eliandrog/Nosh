@@ -1,6 +1,6 @@
 """Ingredient queries."""
 
-from sqlmodel import Session, col, select
+from sqlmodel import Session, func, select
 
 from app.models import Ingredient
 
@@ -16,13 +16,8 @@ def add(session: Session, name: str, name_key: str) -> Ingredient:
 
 
 def search(session: Session, text: str, *, limit: int = 10) -> list[Ingredient]:
-    """Names starting with the text first, then names containing it."""
+    """Matches the readable name: names starting with the text first, then names containing it."""
     needle = text.strip().lower()
-    starts = col(Ingredient.name_key).like(f"{needle}%")
-    stmt = (
-        select(Ingredient)
-        .where(col(Ingredient.name_key).like(f"%{needle}%"))
-        .order_by(starts.desc(), Ingredient.name_key)
-        .limit(limit)
-    )
+    name = func.lower(Ingredient.name)
+    stmt = select(Ingredient).where(name.like(f"%{needle}%")).order_by(name.like(f"{needle}%").desc(), name).limit(limit)
     return list(session.exec(stmt))

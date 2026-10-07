@@ -1,7 +1,12 @@
 """Ingredient merge key: decides when two ingredient names are the same item
-on the shopping list. Only the key is normalised; displayed names are kept."""
+on the shopping list. Only the key is normalised; displayed names are kept.
+
+Keys use dashes, like recipe and tag slugs: "Red Lentils" -> "red-lentil".
+"""
 
 import re
+
+from app.services.slugs import slugify
 
 # Explicit merges, checked before the plural rule. Keys are already trimmed + lowercased.
 ALIASES: dict[str, str] = {
@@ -34,10 +39,10 @@ def normalise_name(name: str) -> str:
 
 
 def merge_key(name: str) -> str:
-    """trim + lowercase -> alias list -> simple plural rule (last word only)."""
+    """trim + lowercase -> alias list -> simple plural rule (last word only) -> dashes."""
     key = normalise_name(name)
     if key in ALIASES:
-        return ALIASES[key]
+        return slugify(ALIASES[key])
     head, _, last = key.rpartition(" ")
     last = _singular(last)
-    return f"{head} {last}" if head else last
+    return slugify(f"{head} {last}" if head else last)
