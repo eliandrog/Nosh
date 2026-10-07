@@ -122,8 +122,4 @@ export const DIETARY_LABELS: Record<DietaryLabel, string> = {
   'dairy-free': 'Dairy-free',
 }
 
-/** Narrow API option lists (typed as string) to the values the form knows how to label. */
-export const knownMealTypes = (values: string[]): MealType[] => values.filter((v): v is MealType => v in MEAL_TYPE_LABELS)
-export const knownDietary = (values: string[]): DietaryLabel[] => values.filter((v): v is DietaryLabel => v in DIETARY_LABELS)
-
 export const titleCase = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)

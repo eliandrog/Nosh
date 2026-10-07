@@ -14,8 +14,6 @@ import {
   emptyForm,
   emptyIngredient,
   emptyStep,
-  knownDietary,
-  knownMealTypes,
   mapServerFields,
   titleCase,
   toSubmission,
@@ -163,7 +161,7 @@ export function AddRecipePage() {
 
       <PillGroup
         legend="Meal type"
-        options={knownMealTypes(options.mealTypes)}
+        options={options.mealTypes}
         labels={MEAL_TYPE_LABELS}
         selected={form.mealTypes}
         onChange={(mealTypes) => update({ mealTypes })}
@@ -172,7 +170,7 @@ export function AddRecipePage() {
       />
       <PillGroup
         legend="Suitable for"
-        options={knownDietary(options.dietaryLabels)}
+        options={options.dietaryLabels}
         labels={DIETARY_LABELS}
         selected={form.dietary}
         onChange={(dietary) => update({ dietary })}
