@@ -7,7 +7,9 @@ from sqlalchemy import CheckConstraint, Column, UniqueConstraint
 from sqlalchemy import Enum as SAEnum
 from sqlmodel import Field, Relationship, SQLModel
 
-from app.constants import Cuisine, DietaryLabel, MealType
+from app.constants import UNITS, Cuisine, DietaryLabel, MealType
+
+_UNIT_KEYS_SQL = ", ".join(f"'{u.key}'" for u in UNITS if u.key is not None)
 
 
 def _enum_column(enum: type, name: str, primary_key: bool = False) -> Column:
@@ -66,6 +68,10 @@ class Ingredient(SQLModel, table=True):
 
 class RecipeIngredient(SQLModel, table=True):
     __tablename__ = "recipe_ingredient"
+    __table_args__ = (
+        CheckConstraint(f"unit IS NULL OR unit IN ({_UNIT_KEYS_SQL})", name="ck_recipe_ingredient_unit"),
+        CheckConstraint("quantity IS NULL OR quantity > 0", name="ck_recipe_ingredient_quantity"),
+    )
 
     recipe_id: uuid.UUID = Field(foreign_key="recipe.id", primary_key=True, ondelete="CASCADE")
     position: int = Field(primary_key=True)
@@ -123,7 +129,12 @@ class RecipeTag(SQLModel, table=True):
 
 class PlanEntry(SQLModel, table=True):
     __tablename__ = "plan_entry"
-    __table_args__ = (CheckConstraint("servings >= 1", name="ck_plan_entry_servings"),)
+    __table_args__ = (
+        CheckConstraint("servings >= 1", name="ck_plan_entry_servings"),
+        # One meal per position per day. New meals go to max(position) + 1; reordering
+        # rewrites the day's positions in one transaction.
+        UniqueConstraint("date", "position", name="uq_plan_entry_date_position"),
+    )
 
     id: int | None = Field(default=None, primary_key=True)
     date: dt.date = Field(index=True)
@@ -157,10 +168,33 @@ class ShoppingListItem(SQLModel, table=True):
 
 
 class Profile(SQLModel, table=True):
+    __table_args__ = (
+        CheckConstraint("id = 1", name="ck_profile_single_row"),
+        CheckConstraint("household_size IS NULL OR household_size >= 1", name="ck_profile_household_size"),
+    )
+
     id: int = Field(default=1, primary_key=True)  # single row
     name: str | None = None
     email: str | None = None
-    household_size: int | None = Field(default=None, ge=1)
+    household_size: int | None = None  # default servings; 1 or more (DB check)
+
+
+class ShoppingListUpdate(SQLModel, table=True):
+    """What changed in a week's shopping list since the user last dismissed the banner.
+
+    Each rebuild adds its counts to the week's row; dismissing the banner sets dismissed=True
+    (the next change resets the counts and shows the banner again).
+    """
+
+    __tablename__ = "shopping_list_update"
+    __table_args__ = (CheckConstraint("added >= 0 AND removed >= 0 AND changed >= 0", name="ck_shopping_list_update_counts"),)
+
+    week_start: dt.date = Field(primary_key=True)  # Monday of the week
+    added: int = 0
+    removed: int = 0
+    changed: int = 0  # quantity went up or down
+    updated_at: dt.datetime = Field(default_factory=_now)
+    dismissed: bool = False
 
 
 class DietaryPreference(SQLModel, table=True):
@@ -182,5 +216,6 @@ __all__ = [
     "RecipeMealType",
     "RecipeTag",
     "ShoppingListItem",
+    "ShoppingListUpdate",
     "Tag",
 ]
