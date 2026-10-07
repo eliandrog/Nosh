@@ -44,9 +44,9 @@ def _dietary_matches(label: DietaryLabel):
     return col(Recipe.id).in_(select(RecipeDietary.recipe_id).where(col(RecipeDietary.label).in_(accepted)))
 
 
-def list_summaries(session: Session, query: RecipeQuery) -> list[Recipe]:
-    stmt = select(Recipe).where(col(Recipe.deleted).is_(False)).options(*_SUMMARY_LOADS)
-
+def _matching_ids(query: RecipeQuery):
+    """Ids of active recipes matching the query; shared by the page and the count, so both agree."""
+    stmt = select(Recipe.id).where(col(Recipe.deleted).is_(False))
     for label in query.dietary:
         stmt = stmt.where(_dietary_matches(label))
     if query.meal_types:
@@ -61,8 +61,28 @@ def list_summaries(session: Session, query: RecipeQuery) -> list[Recipe]:
         like = f"%{query.q.strip().lower()}%"
         with_ingredient = select(RecipeIngredient.recipe_id).join(Ingredient).where(func.lower(Ingredient.name).like(like))
         stmt = stmt.where(func.lower(Recipe.name).like(like) | col(Recipe.id).in_(with_ingredient))
+    return stmt
 
-    return list(session.exec(stmt.order_by(func.lower(Recipe.name))))
+
+def count_summaries(session: Session, query: RecipeQuery) -> int:
+    return session.exec(select(func.count()).select_from(_matching_ids(query).subquery())).one()
+
+
+def list_summaries(session: Session, query: RecipeQuery, *, limit: int | None = None, offset: int = 0) -> list[Recipe]:
+    """One page of matching recipes, ordered by name then id (stable across pages).
+
+    Related rows are eager-loaded for the returned page only.
+    """
+    stmt = (
+        select(Recipe)
+        .where(col(Recipe.id).in_(_matching_ids(query)))
+        .options(*_SUMMARY_LOADS)
+        .order_by(func.lower(Recipe.name), Recipe.id)
+        .offset(offset)
+    )
+    if limit is not None:
+        stmt = stmt.limit(limit)
+    return list(session.exec(stmt))
 
 
 def get_detail_by_slug(session: Session, slug: str, *, include_deleted: bool = False) -> Recipe | None:

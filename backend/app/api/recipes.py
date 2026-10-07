@@ -6,7 +6,7 @@ from app.api.deps import SessionDep, TodayDep
 from app.api.errors import error_responses
 from app.constants import DietaryLabel, MealType
 from app.core.errors import ValidationFailed
-from app.schemas import RecipeCreate, RecipeDetail, RecipeSummary, RecipeUsageOut
+from app.schemas import RecipeCreate, RecipeDetail, RecipePage, RecipeUsageOut
 from app.services import recipes as recipe_service
 
 router = APIRouter(prefix="/recipes", tags=["Recipes"])
@@ -29,12 +29,13 @@ def _enum_list(value: str | None, enum: type, field: str) -> list:
 
 @router.get(
     "",
-    response_model=list[RecipeSummary],
-    summary="List recipes",
+    response_model=RecipePage,
+    summary="List recipes (paged)",
     description=(
-        "Search and filter recipes. Dietary filter defaults to the saved preferences unless `dietary` is given "
-        "or `all=true`. Dietary labels must **all** match (vegetarian also accepts vegan); meal types and tags "
-        "match **any**. Search covers recipe names and ingredients."
+        "Search and filter recipes, one page at a time (ordered by name). Dietary filter defaults to the saved "
+        "preferences unless `dietary` is given or `all=true`. Dietary labels must **all** match (vegetarian also "
+        "accepts vegan); meal types and tags match **any**. Search covers recipe names and ingredients. "
+        "A page past the end returns no items with the correct `total`."
     ),
     responses=error_responses(422),
 )
@@ -45,7 +46,11 @@ def list_recipes(
     dietary: Annotated[str | None, Query(description="Comma-separated, e.g. `vegetarian,gluten-free`")] = None,
     tag: Annotated[str | None, Query(description="Comma-separated tag keys, e.g. `quick,low-cost`")] = None,
     include_all: Annotated[bool, Query(alias="all", description="Ignore saved dietary preferences")] = False,
-) -> list[RecipeSummary]:
+    page: Annotated[int, Query(ge=1, description="Page number, starting at 1")] = 1,
+    page_size: Annotated[
+        int, Query(alias="pageSize", ge=1, le=recipe_service.MAX_PAGE_SIZE, description="Recipes per page")
+    ] = recipe_service.DEFAULT_PAGE_SIZE,
+) -> RecipePage:
     return recipe_service.list_recipes(
         session,
         q=q,
@@ -53,6 +58,8 @@ def list_recipes(
         dietary=_enum_list(dietary, DietaryLabel, "dietary") if dietary is not None else None,
         tag_keys=_csv(tag),
         include_all=include_all,
+        page=page,
+        page_size=page_size,
     )
 
 

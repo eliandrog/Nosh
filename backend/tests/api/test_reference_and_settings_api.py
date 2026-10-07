@@ -38,5 +38,5 @@ def test_profile_round_trip_and_validation(client: TestClient) -> None:
 
 def test_suggestions_and_recipe_search_match_readable_names_with_spaces(client: TestClient) -> None:
     assert [s["name"] for s in client.get("/api/ingredients", params={"q": "red len"}).json()] == ["red lentils"]
-    found = [r["slug"] for r in client.get("/api/recipes", params={"q": "red len", "all": "true"}).json()]
+    found = [r["slug"] for r in client.get("/api/recipes", params={"q": "red len", "all": "true"}).json()["items"]]
     assert found == ["lentil-dahl"]
