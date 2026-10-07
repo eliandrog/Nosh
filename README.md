@@ -23,7 +23,7 @@ uv run uvicorn app.main:app --reload
 
 API: http://localhost:8000 (redirects to the docs) · Docs (Swagger UI): http://localhost:8000/api/docs · OpenAPI spec: http://localhost:8000/api/openapi.json
 
-The SQLite database (`backend/nosh.db`) is created automatically on startup.
+The SQLite database (`backend/nosh.db`) is created and seeded automatically on startup. To start fresh, stop the server and delete `backend/nosh.db`. Set `NOSH_DB_PATH` to use a different file (tests use a temporary database).
 
 Run tests:
 
@@ -56,4 +56,4 @@ npm run preview -- --host   # open the "Network" URL on your phone
 
 ## Data
 
-SQLite database. The 20 starter recipes in `backend/data/project-nosh-sample-recipes.json` (provided with the brief, never modified) will be seeded on first run (not yet implemented).
+SQLite database, accessed with SQLModel. On first run (empty database) the 20 starter recipes in `backend/data/project-nosh-sample-recipes.json` (provided with the brief, never modified) are loaded in one transaction; restarting never duplicates them.
