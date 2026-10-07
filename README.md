@@ -85,6 +85,17 @@ npm run preview -- --host   # open the "Network" URL on your phone
 
 `npm run dev -- --host` also works for quick checks, but the dev server serves modern code only.
 
+## CI
+
+GitHub Actions (`.github/workflows/ci.yml`) runs on every pull request into `main` and on every push to `main`:
+
+| Check | What it runs (reproduce locally) |
+|---|---|
+| **Backend tests** | `cd backend && uv sync --locked && uv run pytest -q` (includes the OpenAPI contract freshness check) |
+| **Frontend checks** | `cd frontend && npm ci && npm run build && npm run lint && npm test`, then `npm run gen:api` must leave `src/api/schema.gen.ts` unchanged |
+
+CI uses Node 24 (LTS) and the Python version in `backend/.python-version`.
+
 ## Data
 
 SQLite database, accessed with SQLModel. On first run (empty database) the 20 starter recipes in `backend/data/project-nosh-sample-recipes.json` (provided with the brief, never modified) are loaded in one transaction; restarting never duplicates them.
