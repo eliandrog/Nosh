@@ -76,3 +76,18 @@ def test_line_needs_amount_or_to_taste(session):
     session.add(ShoppingListItem(week_start=WEEK, ingredient_id=onion.id, unit="item", quantity=None, to_taste=False))
     with pytest.raises(IntegrityError):
         session.commit()
+
+
+def test_shopping_units_cover_every_recipe_unit_after_merging() -> None:
+    from app.constants import SHOPPING_UNITS, UNITS
+
+    assert SHOPPING_UNITS == ("g", "ml", "item", "tin", "clove", "slice", "rasher", "ball", "thumb", "handful")
+    assert all((u.base or u.key or "item") in SHOPPING_UNITS for u in UNITS)
+
+
+@pytest.mark.parametrize("unit", ["kg", "tbsp", "cups", ""])
+def test_shopping_line_unit_must_be_a_merged_unit(session, unit: str) -> None:
+    onion = _ingredient(session, "onion")
+    session.add(ShoppingListItem(week_start=WEEK, ingredient_id=onion.id, unit=unit, quantity=1))
+    with pytest.raises(IntegrityError):
+        session.commit()

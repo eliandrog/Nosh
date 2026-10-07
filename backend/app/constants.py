@@ -32,6 +32,11 @@ UNITS: tuple[Unit, ...] = (
 )
 UNITS_BY_KEY: dict[str | None, Unit] = {u.key: u for u in UNITS}
 
+# Units a merged shopping-list line can have: convertible units become their base (kg -> g,
+# l/tsp/tbsp -> ml), packs keep their own unit, counted items (no unit) become "item".
+COUNT_UNIT = "item"
+SHOPPING_UNITS: tuple[str, ...] = tuple(dict.fromkeys(u.base or u.key or COUNT_UNIT for u in UNITS))
+
 class MealType(StrEnum):
     """What a recipe suits. A recipe has one or more; used as a filter (the plan has no fixed slots)."""
 

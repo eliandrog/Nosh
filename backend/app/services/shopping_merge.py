@@ -13,9 +13,8 @@ from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
 
-from app.constants import UNITS_BY_KEY
+from app.constants import COUNT_UNIT, UNITS_BY_KEY
 
-COUNT_UNIT = "item"  # merged unit for counted items (unit None in recipes)
 _WHOLE_NUMBER_UNITS = {"g", "ml"}
 
 
