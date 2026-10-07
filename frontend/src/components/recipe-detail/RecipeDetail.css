@@ -234,3 +234,25 @@
 .delete-recipe__icon {
   color: var(--flame-coral);
 }
+
+/* Servings stepper above the ingredients (portion scaling) */
+.servings-control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 12px 14px;
+  background: var(--white);
+  border-radius: var(--radius-lg);
+}
+.servings-control__label {
+  font-weight: 700;
+}
+.servings-control__hint {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.recipe-card-block--updating {
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
