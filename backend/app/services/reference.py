@@ -2,7 +2,7 @@
 
 from sqlmodel import Session
 
-from app.constants import CUISINES, DIETARY_LABELS, MEAL_TYPES, UNITS
+from app.constants import UNITS, Cuisine, DietaryLabel, MealType
 from app.repositories import ingredients as ingredient_repo
 from app.repositories import tags as tag_repo
 from app.schemas import IngredientSuggestion, OptionsOut, TagIn, TagOut, UnitOut
@@ -10,7 +10,7 @@ from app.services.tags import get_or_create_tags
 
 
 def options() -> OptionsOut:
-    return OptionsOut(meal_types=list(MEAL_TYPES), dietary_labels=list(DIETARY_LABELS), cuisines=list(CUISINES))
+    return OptionsOut(meal_types=list(MealType), dietary_labels=list(DietaryLabel), cuisines=list(Cuisine))
 
 
 def units() -> list[UnitOut]:

@@ -10,7 +10,7 @@ import uuid
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
-from app.constants import CUISINES, DIETARY_LABELS, MEAL_TYPES, Cuisine, DietaryLabel, MealType
+from app.constants import Cuisine, DietaryLabel, MealType
 
 
 class ApiModel(BaseModel):
@@ -24,9 +24,11 @@ class UnitOut(ApiModel):
 
 
 class OptionsOut(ApiModel):
-    meal_types: list[str] = list(MEAL_TYPES)
-    dietary_labels: list[str] = list(DIETARY_LABELS)
-    cuisines: list[str] = list(CUISINES)
+    """GET /api/options: the fixed lists, typed as enums so clients get exact values."""
+
+    meal_types: list[MealType]
+    dietary_labels: list[DietaryLabel]
+    cuisines: list[Cuisine]
 
 
 class TagOut(ApiModel):
