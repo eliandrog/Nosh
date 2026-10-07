@@ -1,0 +1,160 @@
+/* Buttons */
+.btn {
+  min-height: var(--tap);
+  padding: 12px 20px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid transparent;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--charcoal);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn--primary {
+  background: var(--nosh-green);
+}
+.btn--outline {
+  background: var(--white);
+  border-color: var(--charcoal);
+}
+.btn--block {
+  width: 100%;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Round icon button */
+.icon-btn {
+  width: var(--tap);
+  height: var(--tap);
+  border-radius: var(--radius-pill);
+  border: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--charcoal);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.icon-btn--white {
+  background: var(--white);
+  box-shadow: 0 2px 6px rgba(46, 55, 62, 0.12);
+}
+.icon-btn--surface {
+  background: var(--surface);
+}
+.icon-btn--green {
+  background: var(--nosh-green);
+}
+
+/* Chips */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  font-size: 12px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+.chip--dietary {
+  background: var(--leaf);
+  color: var(--charcoal);
+}
+.chip--tag {
+  background: var(--nosh-green-tint);
+  color: var(--teal-dark);
+}
+.chip--status {
+  background: var(--charcoal);
+  color: var(--white);
+}
+.chip--option {
+  min-height: var(--tap);
+  padding: 0 16px;
+  font-size: 14px;
+  background: var(--white);
+  color: var(--charcoal);
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+.chip--option.chip--selected {
+  background: var(--charcoal);
+  color: var(--white);
+  border-color: var(--charcoal);
+}
+
+/* Stepper */
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+}
+.stepper__btn {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-pill);
+  border: 0;
+  background: var(--nosh-green-tint);
+  color: var(--teal-darker);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.stepper__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.stepper__value {
+  min-width: 48px;
+  text-align: center;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 20px;
+}
+
+/* Bottom sheet */
+.sheet-root {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+}
+.sheet-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(46, 55, 62, 0.55);
+}
+.sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--white);
+  border-radius: 24px 24px 0 0;
+  padding: 10px 16px calc(28px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sheet:focus {
+  outline: none;
+}
+.sheet__handle {
+  width: 40px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--border);
+  align-self: center;
+}
+.sheet__title {
+  font-size: 20px;
+}

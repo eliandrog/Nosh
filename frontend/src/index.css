@@ -1,4 +1,7 @@
+/* Brand palette + supporting tints (see TECHNICAL.md "Colours").
+   Plain hex values (no color-mix) so older phone browsers render them. */
 :root {
+  /* Brand */
   --nosh-green: #62cc9b;
   --deep-teal: #3aa58f;
   --charcoal: #2e373e;
@@ -6,19 +9,71 @@
   --leaf: #d5c52d;
   --cloud-grey: #b7bfc0;
 
-  font-family: 'Nunito Sans', system-ui, sans-serif;
+  /* Supporting tints and shades */
+  --nosh-green-tint: #e6f7ef;
+  --surface: #f4f7f6;
+  --border: #d5dbda;
+  --divider: #eef1f0;
+  --text-muted: #5c666c;
+  --text-disabled: #8a9497;
+  --teal-dark: #1f6b55;
+  --teal-darker: #1f4d3f;
+  --coral-tint: #fde9e1;
+  --leaf-tint: #fdf6d8;
+  --white: #ffffff;
+
+  --font-heading: 'Nunito', Arial, sans-serif;
+  --font-body: 'Nunito Sans', system-ui, sans-serif;
+
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+  --tap: 44px;
+  --tab-bar-height: 64px;
+
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.4;
   color: var(--charcoal);
-  background: #fff;
+  background: var(--surface);
+  -webkit-text-size-adjust: 100%;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  padding: 1rem;
+  min-height: 100vh;
+  background: var(--surface);
 }
 
 h1,
 h2,
 h3 {
-  font-family: 'Nunito', Arial, sans-serif;
+  font-family: var(--font-heading);
   font-weight: 700;
+  margin: 0;
+}
+
+button {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--deep-teal);
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
