@@ -420,3 +420,32 @@
 span.week-nav__range {
   cursor: default;
 }
+
+/* Week screen entry point */
+.free-meals-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: var(--tap);
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--nosh-green-tint);
+  color: var(--teal-darker);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.free-meals-card__sub {
+  display: block;
+  font-weight: 400;
+  font-size: 13px;
+  color: var(--charcoal);
+}
+
+.meal-sheet__note {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}

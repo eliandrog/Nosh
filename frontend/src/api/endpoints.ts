@@ -4,6 +4,8 @@ import type {
   IngredientCreated,
   IngredientSuggestion,
   Options,
+  Place,
+  PlaceFilters,
   PlanEntry,
   PlanEntryInput,
   PlanEntryPatch,
@@ -61,6 +63,14 @@ const httpApi = {
   updatePlanEntry: (id: number, patch: PlanEntryPatch) => request<PlanEntry>('PATCH', `/plan/entries/${id}`, patch),
   deletePlanEntry: (id: number) => request<void>('DELETE', `/plan/entries/${id}`),
   getPlannedDays: (month: string) => request<PlannedDays>('GET', `/plan/days${buildQuery({ month })}`),
+
+  /** Nearby places sharing free meals, nearest first. */
+  listPlaces: (f: PlaceFilters) =>
+    request<Place[]>(
+      'GET',
+      `/places${buildQuery({ lat: f.lat, lng: f.lng, radiusKm: f.radiusKm, openToday: f.openToday, kind: f.kind, dietary: f.dietary, today: f.today })}`,
+    ),
+  getPlace: (id: number) => request<Place>('GET', `/places/${id}`),
 
   getShoppingList: (week?: string) => request<ShoppingList>('GET', `/shopping-list${buildQuery({ week })}`),
   setTicked: (itemId: number, ticked: boolean) => request<ShoppingItem>('PATCH', `/shopping-list/items/${itemId}`, { ticked }),
