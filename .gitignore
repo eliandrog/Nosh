@@ -19,18 +19,29 @@ venv/
 .ruff_cache/
 *.egg-info/
 .coverage
+coverage.xml
 htmlcov/
 
 # Node / Vite
 node_modules/
 dist/
+coverage/
 *.local
 npm-debug.log*
 
-# SQLite
+# SQLite (incl. temporary journal/WAL files)
 *.db
+*.db-journal
+*.db-wal
+*.db-shm
 *.sqlite
 *.sqlite3
+
+# Uploaded recipe photos (local storage)
+backend/uploads/
+
+# Logs
+*.log
 
 # OS / editors
 .DS_Store
