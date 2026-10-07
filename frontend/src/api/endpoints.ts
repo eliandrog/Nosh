@@ -1,6 +1,7 @@
 import { buildQuery, request } from './client'
 import { mockApi } from './mock'
 import type {
+  IngredientCreated,
   IngredientSuggestion,
   Options,
   PlanEntry,
@@ -46,6 +47,8 @@ const httpApi = {
   searchIngredients: (q: string) => request<IngredientSuggestion[]>('GET', `/ingredients${buildQuery({ q })}`),
   listTags: () => request<Tag[]>('GET', '/tags'),
   createTag: (name: string) => request<Tag>('POST', '/tags', { name }),
+  /** Adds an ingredient for the dropdown, or returns the existing one with the same name (created: false). */
+  createIngredient: (name: string) => request<IngredientCreated>('POST', '/ingredients', { name }),
 
   getPreferences: () => request<Preferences>('GET', '/preferences'),
   updatePreferences: (p: PreferencesInput) => request<Preferences>('PUT', '/preferences', p),

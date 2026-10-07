@@ -23,6 +23,9 @@ export type RecipeIngredientInput = Schemas['IngredientLineIn']
 export type RecipeInput = Schemas['RecipeCreate']
 export type RecipeUsage = Schemas['RecipeUsageOut']
 export type IngredientSuggestion = Schemas['IngredientSuggestion']
+export type IngredientInput = Schemas['IngredientIn']
+/** `created: false` = an ingredient with the same name already existed and is returned instead. */
+export type IngredientCreated = Schemas['IngredientOut']
 
 export type Preferences = Schemas['PreferencesOut']
 export type PreferencesInput = Schemas['PreferencesIn']

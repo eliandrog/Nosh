@@ -34,7 +34,11 @@ export interface paths {
          */
         get: operations["suggest_ingredients"];
         put?: never;
-        post?: never;
+        /**
+         * Add an ingredient
+         * @description Adds a new ingredient for the recipe form's dropdown. If one with the same merge key already exists (e.g. `Onions` and `onion`), returns it with **200** and `created: false` instead of a duplicate.
+         */
+        post: operations["create_ingredient"];
         delete?: never;
         options?: never;
         head?: never;
@@ -398,6 +402,14 @@ export interface components {
         ErrorResponse: {
             error: components["schemas"]["ErrorBody"];
         };
+        /**
+         * IngredientIn
+         * @description POST /api/ingredients: add an ingredient to the dropdown (or get the existing one).
+         */
+        IngredientIn: {
+            /** Name */
+            name: string;
+        };
         /** IngredientLine */
         IngredientLine: {
             /** Ingredientid */
@@ -413,14 +425,28 @@ export interface components {
         };
         /** IngredientLineIn */
         IngredientLineIn: {
-            /** Item */
-            item: string;
+            /** Ingredientid */
+            ingredientId?: number | null;
+            /**
+             * Item
+             * @default
+             */
+            item?: string;
             /** Prep */
             prep?: string | null;
             /** Quantity */
             quantity?: number | null;
             /** Unit */
             unit?: string | null;
+        };
+        /** IngredientOut */
+        IngredientOut: {
+            /** Created */
+            created: boolean;
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
         };
         /**
          * IngredientSuggestion
@@ -815,6 +841,48 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["IngredientSuggestion"][];
+                };
+            };
+            /** @description Validation error: `details.fields` maps each field to a message */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    create_ingredient: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IngredientIn"];
+            };
+        };
+        responses: {
+            /** @description Already existed; the existing ingredient */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IngredientOut"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IngredientOut"];
                 };
             };
             /** @description Validation error: `details.fields` maps each field to a message */
