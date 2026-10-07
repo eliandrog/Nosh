@@ -6,7 +6,7 @@ import uuid
 from sqlalchemy.orm import selectinload
 from sqlmodel import Session, col, delete, func, select
 
-from app.models import PlanEntry
+from app.models import PlanEntry, Recipe, RecipeIngredient
 
 
 def list_between(session: Session, start: dt.date, end: dt.date) -> list[PlanEntry]:
@@ -17,6 +17,27 @@ def list_between(session: Session, start: dt.date, end: dt.date) -> list[PlanEnt
         .options(selectinload(PlanEntry.recipe))
         .order_by(PlanEntry.date, PlanEntry.position)
     )
+    return list(session.exec(stmt))
+
+
+def list_between_with_ingredients(session: Session, start: dt.date, end: dt.date) -> list[PlanEntry]:
+    """Like list_between, plus each recipe's ingredient lines and ingredients (for the shopping list)."""
+    stmt = (
+        select(PlanEntry)
+        .where(col(PlanEntry.date) >= start, col(PlanEntry.date) <= end)
+        .options(
+            selectinload(PlanEntry.recipe)
+            .selectinload(Recipe.ingredients)
+            .selectinload(RecipeIngredient.ingredient)
+        )
+        .order_by(PlanEntry.date, PlanEntry.position)
+    )
+    return list(session.exec(stmt))
+
+
+def week_dates_using_recipe(session: Session, recipe_id: uuid.UUID, start: dt.date) -> list[dt.date]:
+    """Distinct dates from `start` on with a meal using this recipe."""
+    stmt = select(PlanEntry.date).where(PlanEntry.recipe_id == recipe_id, col(PlanEntry.date) >= start).distinct()
     return list(session.exec(stmt))
 
 
