@@ -138,3 +138,19 @@ def test_database_rejects_cuisine_outside_enum(session):
             )
         )
         session.commit()
+
+
+def test_dietary_preference_accepts_enum_labels(session):
+    from app.constants import DietaryLabel
+    from app.models import DietaryPreference
+
+    session.add_all([DietaryPreference(label=DietaryLabel.VEGETARIAN), DietaryPreference(label=DietaryLabel.GLUTEN_FREE)])
+    session.commit()
+    labels = {p.label for p in session.exec(select(DietaryPreference))}
+    assert labels == {DietaryLabel.VEGETARIAN, DietaryLabel.GLUTEN_FREE}
+
+
+def test_database_rejects_dietary_preference_outside_enum(session):
+    with pytest.raises(IntegrityError):
+        session.execute(text("INSERT INTO dietary_preference (label) VALUES ('pescatarian')"))
+        session.commit()

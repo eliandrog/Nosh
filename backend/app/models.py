@@ -166,7 +166,8 @@ class Profile(SQLModel, table=True):
 class DietaryPreference(SQLModel, table=True):
     __tablename__ = "dietary_preference"
 
-    label: str = Field(primary_key=True)
+    # The user's chosen dietary needs (single user): one row per selected label.
+    label: DietaryLabel = Field(sa_column=_enum_column(DietaryLabel, "dietary_preference_label", primary_key=True))
 
 
 __all__ = [
