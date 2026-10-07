@@ -1,10 +1,10 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Query, Response, status
 
 from app.api.deps import SessionDep
 from app.api.errors import error_responses
-from app.schemas import IngredientSuggestion, OptionsOut, TagIn, TagOut, UnitOut
+from app.schemas import IngredientIn, IngredientOut, IngredientSuggestion, OptionsOut, TagIn, TagOut, UnitOut
 from app.services import reference as reference_service
 
 router = APIRouter(tags=["Reference data"])
@@ -50,3 +50,21 @@ def suggest_ingredients(
     limit: Annotated[int, Query(ge=1, le=20)] = 10,
 ) -> list[IngredientSuggestion]:
     return reference_service.suggest_ingredients(session, q, limit)
+
+
+@router.post(
+    "/ingredients",
+    response_model=IngredientOut,
+    status_code=status.HTTP_201_CREATED,
+    summary="Add an ingredient",
+    description=(
+        "Adds a new ingredient for the recipe form's dropdown. If one with the same merge key already exists "
+        "(e.g. `Onions` and `onion`), returns it with **200** and `created: false` instead of a duplicate."
+    ),
+    responses={200: {"model": IngredientOut, "description": "Already existed; the existing ingredient"}, **error_responses(422)},
+)
+def create_ingredient(session: SessionDep, data: IngredientIn, response: Response) -> IngredientOut:
+    result = reference_service.create_ingredient(session, data)
+    if not result.created:
+        response.status_code = status.HTTP_200_OK
+    return result

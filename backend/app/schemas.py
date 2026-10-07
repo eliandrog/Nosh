@@ -80,7 +80,10 @@ class RecipeDetail(RecipeSummary):
 
 
 class IngredientLineIn(ApiModel):
-    item: str = Field(min_length=1)
+    # Pick an existing ingredient by id (from the dropdown), or name it in `item` (matched by merge key,
+    # created if new). One of the two is required; ingredientId wins when both are given.
+    ingredient_id: int | None = Field(default=None, ge=1)
+    item: str = Field(default="", max_length=60)
     quantity: float | None = Field(default=None, gt=0)
     unit: str | None = None  # validated against UNITS_BY_KEY in the endpoint
     prep: str | None = None
@@ -104,6 +107,18 @@ class RecipeUsageOut(ApiModel):
     """ASSUMPTION (3): GET /api/recipes/{id}/usage -> {"upcomingMeals": N} for the delete confirmation."""
 
     upcoming_meals: int
+
+
+class IngredientIn(ApiModel):
+    """POST /api/ingredients: add an ingredient to the dropdown (or get the existing one)."""
+
+    name: str = Field(min_length=1, max_length=60)
+
+
+class IngredientOut(ApiModel):
+    id: int
+    name: str
+    created: bool  # False = an ingredient with the same merge key already existed (e.g. "Onions" -> "onion")
 
 
 class IngredientSuggestion(ApiModel):
@@ -241,6 +256,8 @@ CONTRACT_MODELS: tuple[type[BaseModel], ...] = (
     RecipeCreate,
     RecipeUsageOut,
     IngredientSuggestion,
+    IngredientIn,
+    IngredientOut,
     PreferencesOut,
     PreferencesIn,
     ProfileOut,

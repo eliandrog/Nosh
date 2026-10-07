@@ -190,8 +190,8 @@ def _clean(data: RecipeCreate) -> tuple[str, list[str]]:
     for i, line in enumerate(data.ingredients):
         if line.unit not in UNITS_BY_KEY:
             fields[f"ingredients.{i}.unit"] = "Pick a unit from the list."
-        if not line.item.strip():
-            fields[f"ingredients.{i}.item"] = "Name the ingredient."
+        if line.ingredient_id is None and not line.item.strip():
+            fields[f"ingredients.{i}.item"] = "Pick an ingredient or add a new one."
     if fields:
         raise ValidationFailed("Some details need fixing.", fields=fields)
     return name, steps
@@ -204,21 +204,39 @@ def _ingredient_for(session: Session, cache: dict[str, Ingredient], item: str) -
     return cache[key]
 
 
+def _resolve_ingredients(session: Session, data: RecipeCreate) -> list[Ingredient]:
+    """One Ingredient per line: by id when picked from the dropdown (one query for all), else by name."""
+    ids = [line.ingredient_id for line in data.ingredients if line.ingredient_id is not None]
+    by_id = ingredient_repo.get_many(session, ids)
+    missing = {
+        f"ingredients.{i}.ingredientId": "That ingredient no longer exists. Pick another."
+        for i, line in enumerate(data.ingredients)
+        if line.ingredient_id is not None and line.ingredient_id not in by_id
+    }
+    if missing:
+        raise ValidationFailed("Some details need fixing.", fields=missing)
+    cache: dict[str, Ingredient] = {}
+    return [
+        by_id[line.ingredient_id] if line.ingredient_id is not None else _ingredient_for(session, cache, line.item)
+        for line in data.ingredients
+    ]
+
+
 def _apply(session: Session, recipe: Recipe, data: RecipeCreate, name: str, steps: list[str]) -> None:
     """Set all fields and child rows from the request (replaces existing children)."""
     recipe.name = name
     recipe.cuisine = data.cuisine
     recipe.serves = data.serves
-    cache: dict[str, Ingredient] = {}
+    ingredients = _resolve_ingredients(session, data)
     recipe.ingredients = [
         RecipeIngredient(
             position=i,
-            ingredient=_ingredient_for(session, cache, line.item),
+            ingredient=ingredient,
             quantity=line.quantity,
             unit=line.unit,
             prep=(line.prep or "").strip() or None,
         )
-        for i, line in enumerate(data.ingredients)
+        for i, (line, ingredient) in enumerate(zip(data.ingredients, ingredients, strict=True))
     ]
     recipe.method_steps = [MethodStep(position=i, text=text) for i, text in enumerate(steps)]
     recipe.meal_types = [RecipeMealType(meal_type=m) for m in dict.fromkeys(data.meal_types)]
