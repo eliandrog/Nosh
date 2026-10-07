@@ -1,0 +1,46 @@
+.tab-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 6px 12px calc(6px + env(safe-area-inset-bottom, 0px));
+  background: var(--white);
+  border-top: 1px solid var(--divider);
+}
+
+.tab {
+  flex: 1;
+  min-height: var(--tap);
+  min-width: var(--tap);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 4px;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 12px;
+}
+
+.tab--active {
+  background: var(--nosh-green-tint);
+  color: var(--charcoal);
+  font-weight: 700;
+}
+
+/* Keep the bar a phone-width strip on larger screens. */
+@media (min-width: 600px) {
+  .tab-bar {
+    left: 50%;
+    right: auto;
+    width: 560px;
+    transform: translateX(-50%);
+    border-radius: 16px 16px 0 0;
+  }
+}
