@@ -4,27 +4,15 @@ from fastapi import APIRouter, Path, Query, Response, status
 
 from app.api.deps import SessionDep, TodayDep
 from app.api.errors import error_responses
+from app.api.params import csv as _csv
+from app.api.params import enum_list as _enum_list
 from app.constants import DietaryLabel, MealType
-from app.core.errors import ValidationFailed
 from app.schemas import RecipeCreate, RecipeDetail, RecipePage, RecipeUsageOut
 from app.services import recipes as recipe_service
 
 router = APIRouter(prefix="/recipes", tags=["Recipes"])
 
 SlugPath = Annotated[str, Path(description="Recipe slug, e.g. `lentil-dahl`")]
-
-
-def _csv(value: str | None) -> list[str]:
-    return [v.strip() for v in (value or "").split(",") if v.strip()]
-
-
-def _enum_list(value: str | None, enum: type, field: str) -> list:
-    items = _csv(value)
-    try:
-        return [enum(v) for v in items]
-    except ValueError:
-        allowed = ", ".join(e.value for e in enum)
-        raise ValidationFailed("Some details need fixing.", fields={field: f"Use any of: {allowed}."}) from None
 
 
 @router.get(

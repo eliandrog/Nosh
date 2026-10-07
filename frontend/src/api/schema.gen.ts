@@ -62,6 +62,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/places": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Find free meals nearby
+         * @description Places within `radiusKm` of a point, nearest first, each with its matching meals and `distanceKm`. Filters apply to meals (`openToday` uses the user's local date; dietary labels must **all** match, vegetarian also accepts vegan). A place is listed only if at least one meal matches.
+         */
+        get: operations["find_nearby"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/places/{place_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a place
+         * @description A place with all its meals (`distanceKm` is null here).
+         */
+        get: operations["get_place"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/plan": {
         parameters: {
             query?: never;
@@ -476,6 +516,68 @@ export interface components {
             /** Mealtypes */
             mealTypes: components["schemas"]["MealType"][];
         };
+        /**
+         * PlaceMealKind
+         * @enum {string}
+         */
+        PlaceMealKind: "hot" | "parcel";
+        /** PlaceMealOut */
+        PlaceMealOut: {
+            /** Dietary */
+            dietary: components["schemas"]["DietaryLabel"][];
+            /**
+             * Endtime
+             * Format: time
+             */
+            endTime: string;
+            /** Id */
+            id: number;
+            kind: components["schemas"]["PlaceMealKind"];
+            /** Name */
+            name: string;
+            /** Opentoday */
+            openToday: boolean;
+            /** Serves */
+            serves: number;
+            /** Servesnote */
+            servesNote: string | null;
+            /**
+             * Starttime
+             * Format: time
+             */
+            startTime: string;
+            /** Weekday */
+            weekday: number;
+        };
+        /**
+         * PlaceOut
+         * @description GET /api/places (nearby, sorted by distance) and GET /api/places/{id}.
+         */
+        PlaceOut: {
+            /** Distancekm */
+            distanceKm: number | null;
+            /** Id */
+            id: number;
+            /** Isdemo */
+            isDemo: boolean;
+            /** Latitude */
+            latitude: number;
+            /** Longitude */
+            longitude: number;
+            /** Meals */
+            meals: components["schemas"]["PlaceMealOut"][];
+            /** Name */
+            name: string;
+            /** Postcode */
+            postcode: string;
+            type: components["schemas"]["PlaceType"];
+        };
+        /**
+         * PlaceType
+         * @description Kinds of place that share free meals (Free meals nearby).
+         * @enum {string}
+         */
+        PlaceType: "community_kitchen" | "cafe" | "food_hub";
         /** PlanDayOut */
         PlanDayOut: {
             /**
@@ -499,6 +601,8 @@ export interface components {
         /**
          * PlanEntryCreate
          * @description POST /api/plan/entries. The meal goes last on that day.
+         *
+         *     Give exactly one of recipeId or placeMealId. A place meal can only go on its weekday.
          */
         PlanEntryCreate: {
             /**
@@ -506,15 +610,17 @@ export interface components {
              * Format: date
              */
             date: string;
-            /**
-             * Recipeid
-             * Format: uuid
-             */
-            recipeId: string;
+            /** Placemealid */
+            placeMealId?: number | null;
+            /** Recipeid */
+            recipeId?: string | null;
             /** Servings */
             servings: number;
         };
-        /** PlanEntryOut */
+        /**
+         * PlanEntryOut
+         * @description A planned meal: either a recipe (kind "recipe") or a free meal from a place (kind "free_meal").
+         */
         PlanEntryOut: {
             /**
              * Date
@@ -523,19 +629,23 @@ export interface components {
             date: string;
             /** Id */
             id: number;
+            /**
+             * Kind
+             * @default recipe
+             * @enum {string}
+             */
+            kind?: "recipe" | "free_meal";
+            placeMeal?: components["schemas"]["PlanPlaceMealOut"] | null;
             /** Position */
             position: number;
             /** Recipedeleted */
             recipeDeleted: boolean;
-            /**
-             * Recipeid
-             * Format: uuid
-             */
-            recipeId: string;
+            /** Recipeid */
+            recipeId: string | null;
             /** Recipename */
-            recipeName: string;
+            recipeName: string | null;
             /** Recipeslug */
-            recipeSlug: string;
+            recipeSlug: string | null;
             /** Servings */
             servings: number;
         };
@@ -552,6 +662,31 @@ export interface components {
             recipeId?: string | null;
             /** Servings */
             servings?: number | null;
+        };
+        /**
+         * PlanPlaceMealOut
+         * @description A free meal from a place, as shown in the week plan.
+         */
+        PlanPlaceMealOut: {
+            /**
+             * Endtime
+             * Format: time
+             */
+            endTime: string;
+            /** Id */
+            id: number;
+            kind: components["schemas"]["PlaceMealKind"];
+            /** Name */
+            name: string;
+            /** Placeid */
+            placeId: number;
+            /** Placename */
+            placeName: string;
+            /**
+             * Starttime
+             * Format: time
+             */
+            startTime: string;
         };
         /** PreferencesIn */
         PreferencesIn: {
@@ -912,6 +1047,94 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OptionsOut"];
+                };
+            };
+        };
+    };
+    find_nearby: {
+        parameters: {
+            query: {
+                /** @description Latitude of the search point, e.g. 51.4613 */
+                lat: number;
+                /** @description Longitude of the search point, e.g. -0.1149 */
+                lng: number;
+                /** @description Search radius in km (max 10) */
+                radiusKm?: number;
+                /** @description Only meals served today */
+                openToday?: boolean;
+                /** @description `hot` meals or food `parcel`s */
+                kind?: components["schemas"]["PlaceMealKind"] | null;
+                /** @description Comma-separated, e.g. `vegetarian,gluten-free` */
+                dietary?: string | null;
+                /** @description The user's local date (YYYY-MM-DD). Defaults to the server's local date. */
+                today?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaceOut"][];
+                };
+            };
+            /** @description Validation error: `details.fields` maps each field to a message */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_place: {
+        parameters: {
+            query?: {
+                /** @description The user's local date (YYYY-MM-DD). Defaults to the server's local date. */
+                today?: string | null;
+            };
+            header?: never;
+            path: {
+                /** @description Place id */
+                place_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaceOut"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation error: `details.fields` maps each field to a message */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };

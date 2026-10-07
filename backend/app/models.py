@@ -7,7 +7,7 @@ from sqlalchemy import CheckConstraint, Column, UniqueConstraint
 from sqlalchemy import Enum as SAEnum
 from sqlmodel import Field, Relationship, SQLModel
 
-from app.constants import SHOPPING_UNITS, UNITS, Cuisine, DietaryLabel, MealType
+from app.constants import SHOPPING_UNITS, UNITS, Cuisine, DietaryLabel, MealType, PlaceMealKind, PlaceType
 
 _UNIT_KEYS_SQL = ", ".join(f"'{u.key}'" for u in UNITS if u.key is not None)
 _SHOPPING_UNITS_SQL = ", ".join(f"'{u}'" for u in SHOPPING_UNITS)
@@ -128,10 +128,67 @@ class RecipeTag(SQLModel, table=True):
     tag: Tag = Relationship()
 
 
+class Place(SQLModel, table=True):
+    """A place sharing free meals (Free meals nearby). Location is a postcode plus its coordinates."""
+
+    __table_args__ = (
+        CheckConstraint("latitude BETWEEN -90 AND 90", name="ck_place_latitude"),
+        CheckConstraint("longitude BETWEEN -180 AND 180", name="ck_place_longitude"),
+    )
+
+    id: int | None = Field(default=None, primary_key=True)
+    name: str
+    type: PlaceType = Field(sa_column=_enum_column(PlaceType, "place_type"))
+    postcode: str
+    latitude: float = Field(index=True)
+    longitude: float = Field(index=True)
+    is_demo: bool = False  # seeded demo data: fictional names, real postcodes
+
+    meals: list["PlaceMeal"] = Relationship(
+        back_populates="place",
+        sa_relationship_kwargs={"order_by": "PlaceMeal.weekday, PlaceMeal.start_time", "cascade": "all, delete-orphan"},
+    )
+
+
+class PlaceMeal(SQLModel, table=True):
+    """A meal a place shares every week on one weekday (not fixed dates, so data stays valid)."""
+
+    __tablename__ = "place_meal"
+    __table_args__ = (
+        CheckConstraint("weekday BETWEEN 0 AND 6", name="ck_place_meal_weekday"),  # 0 = Monday
+        CheckConstraint("start_time < end_time", name="ck_place_meal_times"),
+        CheckConstraint("serves >= 1", name="ck_place_meal_serves"),
+    )
+
+    id: int | None = Field(default=None, primary_key=True)
+    place_id: int = Field(foreign_key="place.id", index=True, ondelete="CASCADE")
+    name: str
+    kind: PlaceMealKind = Field(sa_column=_enum_column(PlaceMealKind, "place_meal_kind"))
+    weekday: int
+    start_time: dt.time
+    end_time: dt.time
+    serves: int  # people one portion/parcel feeds
+    serves_note: str | None = None  # e.g. "feeds 4 for about 3 days"
+
+    place: Place = Relationship(back_populates="meals")
+    dietary: list["PlaceMealDietary"] = Relationship(sa_relationship_kwargs={"cascade": "all, delete-orphan"})
+
+
+class PlaceMealDietary(SQLModel, table=True):
+    __tablename__ = "place_meal_dietary"
+
+    place_meal_id: int = Field(foreign_key="place_meal.id", primary_key=True, ondelete="CASCADE")
+    label: DietaryLabel = Field(sa_column=_enum_column(DietaryLabel, "place_meal_dietary_label", primary_key=True))
+
+
 class PlanEntry(SQLModel, table=True):
     __tablename__ = "plan_entry"
     __table_args__ = (
         CheckConstraint("servings >= 1", name="ck_plan_entry_servings"),
+        # A planned meal is either a recipe or a free meal from a place, never both or neither.
+        CheckConstraint(
+            "(recipe_id IS NOT NULL) + (place_meal_id IS NOT NULL) = 1", name="ck_plan_entry_recipe_or_place_meal"
+        ),
         # One meal per position per day. New meals go to max(position) + 1; reordering
         # rewrites the day's positions in one transaction.
         UniqueConstraint("date", "position", name="uq_plan_entry_date_position"),
@@ -141,10 +198,12 @@ class PlanEntry(SQLModel, table=True):
     date: dt.date = Field(index=True)
     position: int = 0  # order within the day; unlimited meals per day
     # Kept for soft-deleted recipes so past weeks still show them.
-    recipe_id: uuid.UUID = Field(foreign_key="recipe.id", index=True)
+    recipe_id: uuid.UUID | None = Field(default=None, foreign_key="recipe.id", index=True)
+    place_meal_id: int | None = Field(default=None, foreign_key="place_meal.id", index=True)
     servings: int = 1
 
-    recipe: Recipe = Relationship()
+    recipe: Recipe | None = Relationship()
+    place_meal: PlaceMeal | None = Relationship()
 
 
 class ShoppingListItem(SQLModel, table=True):
@@ -218,6 +277,9 @@ __all__ = [
     "DietaryPreference",
     "Ingredient",
     "MethodStep",
+    "Place",
+    "PlaceMeal",
+    "PlaceMealDietary",
     "PlanEntry",
     "Profile",
     "Recipe",

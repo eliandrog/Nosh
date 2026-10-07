@@ -99,3 +99,5 @@ CI uses Node 24 (LTS) and the Python version in `backend/.python-version`.
 ## Data
 
 SQLite database, accessed with SQLModel. On first run (empty database) the 20 starter recipes in `backend/data/project-nosh-sample-recipes.json` (provided with the brief, never modified) are loaded in one transaction; restarting never duplicates them.
+
+**Free meals nearby (demo data):** 3 places are seeded on first run from `backend/app/seed_places.py`. Their **names are fictional** and don't refer to any real organisation; their **postcodes are real** (Brixton, London: SW2 1RW, SW2 1JQ, SW9 8PR), with each postcode's centre coordinates from postcodes.io. Meals repeat weekly by weekday. Try `GET /api/places?lat=51.4613&lng=-0.1149` in the API docs.

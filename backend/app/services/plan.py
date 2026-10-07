@@ -2,6 +2,8 @@
 
 - New meals go last on their day.
 - Only active recipes can be planned or swapped in; past meals keep soft-deleted recipes.
+- A planned meal can instead be a free meal from a place (Free meals nearby); it can only go on
+  the weekday that place serves it, and the shopping list skips it.
 - Moving a meal puts it last on the new day; reordering rewrites that day's positions.
 """
 
@@ -14,10 +16,19 @@ from sqlmodel import Session
 
 from app.core.dates import week_start
 from app.core.errors import NotFoundError, ValidationFailed
-from app.models import PlanEntry, Recipe
+from app.models import PlaceMeal, PlanEntry, Recipe
 from app.repositories import plan as plan_repo
 from app.repositories import recipes as recipe_repo
-from app.schemas import PlanDayOut, PlanDaysOut, PlanEntryCreate, PlanEntryOut, PlanEntryUpdate, WeekPlanOut
+from app.schemas import (
+    PlanDayOut,
+    PlanDaysOut,
+    PlanEntryCreate,
+    PlanEntryOut,
+    PlanEntryUpdate,
+    PlanPlaceMealOut,
+    WeekPlanOut,
+)
+from app.services import places as place_service
 from app.services import shopping as shopping_service
 from app.services.recipes import RecipeNotFound
 
@@ -26,17 +37,46 @@ class PlanEntryNotFound(NotFoundError):
     code = "plan_entry_not_found"
 
 
+WEEKDAYS = ("Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays", "Sundays")
+
+
 def to_entry_out(entry: PlanEntry) -> PlanEntryOut:
+    common = {"id": entry.id, "date": entry.date, "position": entry.position, "servings": entry.servings}
+    if entry.place_meal is not None:
+        meal = entry.place_meal
+        return PlanEntryOut(
+            **common,
+            kind="free_meal",
+            recipe_id=None,
+            recipe_slug=None,
+            recipe_name=None,
+            recipe_deleted=False,
+            place_meal=PlanPlaceMealOut(
+                id=meal.id,
+                name=meal.name,
+                kind=meal.kind,
+                place_id=meal.place_id,
+                place_name=meal.place.name,
+                start_time=meal.start_time,
+                end_time=meal.end_time,
+            ),
+        )
     return PlanEntryOut(
-        id=entry.id,
-        date=entry.date,
-        position=entry.position,
+        **common,
+        kind="recipe",
         recipe_id=entry.recipe_id,
         recipe_slug=entry.recipe.slug,
         recipe_name=entry.recipe.name,
         recipe_deleted=entry.recipe.deleted,
-        servings=entry.servings,
     )
+
+
+def _check_weekday(meal: PlaceMeal, day: dt.date) -> None:
+    if day.weekday() != meal.weekday:
+        when = WEEKDAYS[meal.weekday]
+        raise ValidationFailed(
+            f"{meal.name} is only served on {when}.", fields={"date": f"Pick a day this meal is served: {when}."}
+        )
 
 
 def get_week(session: Session, day: dt.date) -> WeekPlanOut:
@@ -74,9 +114,14 @@ def _get_entry(session: Session, entry_id: int) -> PlanEntry:
 
 
 def add_entry(session: Session, data: PlanEntryCreate, today: dt.date) -> PlanEntryOut:
-    recipe = _active_recipe(session, data.recipe_id)
+    if data.place_meal_id is not None:
+        meal = place_service.get_meal(session, data.place_meal_id)
+        _check_weekday(meal, data.date)
+        source = {"place_meal": meal}
+    else:
+        source = {"recipe": _active_recipe(session, data.recipe_id)}
     position = plan_repo.next_position(session, data.date)
-    entry = plan_repo.add(session, PlanEntry(date=data.date, position=position, recipe=recipe, servings=data.servings))
+    entry = plan_repo.add(session, PlanEntry(date=data.date, position=position, servings=data.servings, **source))
     session.flush()
     shopping_service.rebuild_week(session, entry.date, today)
     session.commit()
@@ -100,9 +145,12 @@ def update_entry(session: Session, entry_id: int, data: PlanEntryUpdate, today: 
     old_date = entry.date
     if data.recipe_id is not None and data.recipe_id != entry.recipe_id:
         entry.recipe = _active_recipe(session, data.recipe_id)
+        entry.place_meal = None  # swapping a free meal for a recipe turns it into a recipe meal
     if data.servings is not None:
         entry.servings = data.servings
     if data.date is not None and data.date != entry.date:
+        if entry.place_meal is not None:
+            _check_weekday(entry.place_meal, data.date)
         position = plan_repo.next_position(session, data.date)  # read before changing the date
         entry.date, entry.position = data.date, position
     if data.position is not None:

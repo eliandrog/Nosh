@@ -1,6 +1,7 @@
 import { Link } from 'react-router'
 import type { PlanDay, PlanEntry } from '../../api/types'
 import { dayLabel } from '../../lib/dates'
+import { mealName } from '../../lib/planEntry'
 import { PlusIcon } from '../icons'
 import { Chip } from '../ui'
 
@@ -25,7 +26,7 @@ export function DayCard({ day, isToday, onOpenMeal }: DayCardProps) {
             <li key={entry.id}>
               <button type="button" className="meal-pill" onClick={() => onOpenMeal(entry)}>
                 <span className="meal-pill__name">
-                  {entry.recipeName}
+                  {mealName(entry)}
                   {entry.recipeDeleted && <span className="meal-pill__deleted"> (deleted)</span>}
                 </span>
                 <span className="meal-pill__servings">for {entry.servings}</span>
