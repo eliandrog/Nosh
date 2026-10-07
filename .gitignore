@@ -1,6 +1,9 @@
 # Personal notes
 TECHNICAL.md
 
+# Claude Code (agent worktrees, local settings)
+.claude/
+
 # Environment
 .env
 .env.*
