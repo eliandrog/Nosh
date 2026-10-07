@@ -11,8 +11,197 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Health */
-        get: operations["health_api_health_get"];
+        /** Health check */
+        get: operations["health"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ingredients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Suggest ingredient names
+         * @description Type-ahead for the recipe form: names starting with the text first, then names containing it.
+         */
+        get: operations["suggest_ingredients"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Fixed lists for forms and filters */
+        get: operations["get_options"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get dietary preferences */
+        get: operations["get_preferences"];
+        /**
+         * Set dietary preferences
+         * @description Replaces the saved dietary labels. The recipe list filters by these by default.
+         */
+        put: operations["update_preferences"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get profile */
+        get: operations["get_profile"];
+        /**
+         * Update profile
+         * @description Name, email and household size (the default servings when adding a meal). Profile only, no login.
+         */
+        put: operations["update_profile"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recipes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List recipes
+         * @description Search and filter recipes. Dietary filter defaults to the saved preferences unless `dietary` is given or `all=true`. Dietary labels must **all** match (vegetarian also accepts vegan); meal types and tags match **any**. Search covers recipe names and ingredients.
+         */
+        get: operations["list_recipes"];
+        put?: never;
+        /**
+         * Create a recipe
+         * @description Adds a custom recipe. Unknown tag names are created. The slug is made from the name.
+         */
+        post: operations["create_recipe"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recipes/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a recipe
+         * @description Full recipe. Pass `servings` to scale ingredient amounts.
+         */
+        get: operations["get_recipe"];
+        /**
+         * Update a recipe
+         * @description Replaces a custom recipe. Built-in recipes are read-only. Renaming updates the slug.
+         */
+        put: operations["update_recipe"];
+        post?: never;
+        /**
+         * Delete a recipe
+         * @description Soft-deletes a custom recipe: removed from today and future days, kept in past weeks.
+         */
+        delete: operations["delete_recipe"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/recipes/{slug}/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Count upcoming planned meals
+         * @description Used by the delete confirmation: how many meals from today onwards use this recipe.
+         */
+        get: operations["recipe_usage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List tags */
+        get: operations["list_tags"];
+        put?: never;
+        /**
+         * Create a tag
+         * @description Returns the existing tag if one with the same key already exists (e.g. `Low cost` / `low-cost`).
+         */
+        post: operations["create_tag"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/units": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Units for the ingredient unit dropdown */
+        get: operations["list_units"];
         put?: never;
         post?: never;
         delete?: never;
@@ -41,11 +230,8 @@ export interface components {
         ErrorBody: {
             /** Code */
             code: string;
-            /**
-             * Details
-             * @default null
-             */
-            details: {
+            /** Details */
+            details?: {
                 [key: string]: unknown;
             } | null;
             /** Message */
@@ -63,11 +249,8 @@ export interface components {
             ingredientId: number;
             /** Item */
             item: string;
-            /**
-             * Prep
-             * @default null
-             */
-            prep: string | null;
+            /** Prep */
+            prep?: string | null;
             /** Quantity */
             quantity: number | null;
             /** Unit */
@@ -77,21 +260,12 @@ export interface components {
         IngredientLineIn: {
             /** Item */
             item: string;
-            /**
-             * Prep
-             * @default null
-             */
-            prep: string | null;
-            /**
-             * Quantity
-             * @default null
-             */
-            quantity: number | null;
-            /**
-             * Unit
-             * @default null
-             */
-            unit: string | null;
+            /** Prep */
+            prep?: string | null;
+            /** Quantity */
+            quantity?: number | null;
+            /** Unit */
+            unit?: string | null;
         };
         /**
          * IngredientSuggestion
@@ -250,21 +424,12 @@ export interface components {
         };
         /** ProfileIn */
         ProfileIn: {
-            /**
-             * Email
-             * @default null
-             */
-            email: string | null;
-            /**
-             * Householdsize
-             * @default null
-             */
-            householdSize: number | null;
-            /**
-             * Name
-             * @default null
-             */
-            name: string | null;
+            /** Email */
+            email?: string | null;
+            /** Householdsize */
+            householdSize?: number | null;
+            /** Name */
+            name?: string | null;
         };
         /** ProfileOut */
         ProfileOut: {
@@ -474,7 +639,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    health_api_health_get: {
+    health: {
         parameters: {
             query?: never;
             header?: never;
@@ -492,6 +657,522 @@ export interface operations {
                     "application/json": {
                         [key: string]: string;
                     };
+                };
+            };
+        };
+    };
+    suggest_ingredients: {
+        parameters: {
+            query: {
+                /** @description Text typed so far */
+                q: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IngredientSuggestion"][];
+                };
+            };
+            /** @description Validation error: `details.fields` maps each field to a message */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_options: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OptionsOut"];
+                };
+            };
+        };
+    };
+    get_preferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreferencesOut"];
+                };
+            };
+        };
+    };
+    update_preferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreferencesIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreferencesOut"];
+                };
+            };
+            /** @description Validation error: `details.fields` maps each field to a message */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_profile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileOut"];
+                };
+            };
+        };
+    };
+    update_profile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProfileIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileOut"];
+                };
+            };
+            /** @description Validation error: `details.fields` maps each field to a message */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_recipes: {
+        parameters: {
+            query?: {
+                /** @description Search text (name or ingredient) */
+                q?: string | null;
+                /** @description Comma-separated, e.g. `lunch,dinner` */
+                mealType?: string | null;
+                /** @description Comma-separated, e.g. `vegetarian,gluten-free` */
+                dietary?: string | null;
+                /** @description Comma-separated tag keys, e.g. `quick,low-cost` */
+                tag?: string | null;
+                /** @description Ignore saved dietary preferences */
+                all?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecipeSummary"][];
+                };
+            };
+            /** @description Validation error: `details.fields` maps each field to a message */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    create_recipe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecipeCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecipeDetail"];
+                };
+            };
+            /** @description Conflict (e.g. a recipe with this name already exists) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation error: `details.fields` maps each field to a message */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_recipe: {
+        parameters: {
+            query?: {
+                /** @description Scale amounts to this many servings */
+                servings?: number | null;
+            };
+            header?: never;
+            path: {
+                /** @description Recipe slug, e.g. `lentil-dahl` */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecipeDetail"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation error: `details.fields` maps each field to a message */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    update_recipe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Recipe slug, e.g. `lentil-dahl` */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecipeCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecipeDetail"];
+                };
+            };
+            /** @description Not allowed (e.g. editing a built-in recipe) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict (e.g. a recipe with this name already exists) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation error: `details.fields` maps each field to a message */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    delete_recipe: {
+        parameters: {
+            query?: {
+                /** @description The user's local date (YYYY-MM-DD). Defaults to the server's local date. */
+                today?: string | null;
+            };
+            header?: never;
+            path: {
+                /** @description Recipe slug, e.g. `lentil-dahl` */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not allowed (e.g. editing a built-in recipe) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation error: `details.fields` maps each field to a message */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    recipe_usage: {
+        parameters: {
+            query?: {
+                /** @description The user's local date (YYYY-MM-DD). Defaults to the server's local date. */
+                today?: string | null;
+            };
+            header?: never;
+            path: {
+                /** @description Recipe slug, e.g. `lentil-dahl` */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecipeUsageOut"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation error: `details.fields` maps each field to a message */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_tags: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TagOut"][];
+                };
+            };
+        };
+    };
+    create_tag: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TagIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TagOut"];
+                };
+            };
+            /** @description Validation error: `details.fields` maps each field to a message */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_units: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnitOut"][];
                 };
             };
         };
