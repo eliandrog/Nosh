@@ -91,7 +91,15 @@
 }
 
 .recipes__search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 12px;
+}
+
+.recipes__search > :first-child {
+  flex: 1;
+  min-width: 0;
 }
 
 .recipes__count {
