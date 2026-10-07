@@ -4,6 +4,8 @@ import { PlaceholderPage } from './pages/PlaceholderPage'
 import { AddMealPage } from './pages/AddMealPage'
 import { AddRecipePage } from './pages/AddRecipePage'
 import { RecipesPage } from './pages/RecipesPage'
+import { DietaryPreferencesPage } from './pages/settings/DietaryPreferencesPage'
+import { SettingsPage } from './pages/settings/SettingsPage'
 import { WeekPage } from './pages/WeekPage'
 
 export const router = createBrowserRouter([
@@ -18,7 +20,8 @@ export const router = createBrowserRouter([
       { path: 'week', element: <WeekPage /> },
       { path: 'week/add', element: <AddMealPage /> },
       { path: 'shopping', element: <PlaceholderPage title="Shopping list" /> },
-      { path: 'settings', element: <PlaceholderPage title="Settings" /> },
+      { path: 'settings', element: <SettingsPage /> },
+      { path: 'settings/dietary', element: <DietaryPreferencesPage /> },
       { path: '*', element: <PlaceholderPage title="Page not found" /> },
     ],
   },

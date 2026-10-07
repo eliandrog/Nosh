@@ -102,35 +102,6 @@
   gap: 8px;
 }
 
-/* Errors: coral icon/border, Charcoal text (coral text fails AA) */
-.field-error {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 0;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--charcoal);
-}
-.field-error__icon {
-  color: var(--flame-coral);
-  flex-shrink: 0;
-}
-.error-summary {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px;
-  border-radius: var(--radius-md);
-  background: var(--coral-tint);
-  border: 1px solid var(--flame-coral);
-  color: var(--charcoal);
-  font-weight: 700;
-}
-.error-summary p {
-  margin: 0;
-}
-
 /* Cards */
 .form-card {
   display: flex;
