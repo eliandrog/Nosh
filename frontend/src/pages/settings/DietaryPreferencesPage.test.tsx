@@ -4,7 +4,8 @@ import { createMemoryRouter, RouterProvider } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { NetworkError } from '../../api/client'
 import { api } from '../../api/endpoints'
-import type { DietaryLabel, RecipeFilters, RecipeSummary } from '../../api/types'
+import type { DietaryLabel, RecipeFilters, RecipePage, RecipeSummary } from '../../api/types'
+import { pageOf } from '../../test/pages'
 import { DietaryPreferencesPage } from './DietaryPreferencesPage'
 
 vi.mock('../../api/endpoints', () => ({
@@ -27,10 +28,12 @@ const recipe = (slug: string, dietary: DietaryLabel[]): RecipeSummary => ({
 })
 const ALL = [recipe('dahl', ['vegetarian', 'vegan']), recipe('pizza', ['vegetarian']), recipe('bolognese', [])]
 
-/** Stub server: filters like the real API (every selected label must match). */
-function listRecipes(f: RecipeFilters = {}): Promise<RecipeSummary[]> {
+/** Stub server: filters and pages like the real API (every selected label must match). */
+function listRecipes(f: RecipeFilters = {}): Promise<RecipePage> {
   const dietary = f.all ? [] : (f.dietary ?? [])
-  return Promise.resolve(ALL.filter((r) => dietary.every((d) => r.dietary.includes(d))))
+  const matching = ALL.filter((r) => dietary.every((d) => r.dietary.includes(d)))
+  const pageSize = f.pageSize ?? 20
+  return Promise.resolve(pageOf(matching.slice(0, pageSize), { pageSize, total: matching.length }))
 }
 
 function renderPage() {

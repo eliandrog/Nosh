@@ -189,8 +189,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * List recipes
-         * @description Search and filter recipes. Dietary filter defaults to the saved preferences unless `dietary` is given or `all=true`. Dietary labels must **all** match (vegetarian also accepts vegan); meal types and tags match **any**. Search covers recipe names and ingredients.
+         * List recipes (paged)
+         * @description Search and filter recipes, one page at a time (ordered by name). Dietary filter defaults to the saved preferences unless `dietary` is given or `all=true`. Dietary labels must **all** match (vegetarian also accepts vegan); meal types and tags match **any**. Search covers recipe names and ingredients. A page past the end returns no items with the correct `total`.
          */
         get: operations["list_recipes"];
         put?: never;
@@ -620,6 +620,22 @@ export interface components {
             slug: string;
             /** Tags */
             tags: components["schemas"]["TagOut"][];
+        };
+        /**
+         * RecipePage
+         * @description GET /api/recipes: one page of results. A page past the end has no items but the right totals.
+         */
+        RecipePage: {
+            /** Items */
+            items: components["schemas"]["RecipeSummary"][];
+            /** Page */
+            page: number;
+            /** Pagesize */
+            pageSize: number;
+            /** Total */
+            total: number;
+            /** Totalpages */
+            totalPages: number;
         };
         /**
          * RecipeSummary
@@ -1152,6 +1168,10 @@ export interface operations {
                 tag?: string | null;
                 /** @description Ignore saved dietary preferences */
                 all?: boolean;
+                /** @description Page number, starting at 1 */
+                page?: number;
+                /** @description Recipes per page */
+                pageSize?: number;
             };
             header?: never;
             path?: never;
@@ -1165,7 +1185,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RecipeSummary"][];
+                    "application/json": components["schemas"]["RecipePage"];
                 };
             };
             /** @description Validation error: `details.fields` maps each field to a message */
