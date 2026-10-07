@@ -1256,6 +1256,27 @@
       "post": {
         "description": "The meal goes last on that day. Unlimited meals per day.",
         "operationId": "add_entry",
+        "parameters": [
+          {
+            "description": "The user's local date (YYYY-MM-DD). Defaults to the server's local date.",
+            "in": "query",
+            "name": "today",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The user's local date (YYYY-MM-DD). Defaults to the server's local date.",
+              "title": "Today"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -1319,6 +1340,25 @@
               "title": "Entry Id",
               "type": "integer"
             }
+          },
+          {
+            "description": "The user's local date (YYYY-MM-DD). Defaults to the server's local date.",
+            "in": "query",
+            "name": "today",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The user's local date (YYYY-MM-DD). Defaults to the server's local date.",
+              "title": "Today"
+            }
           }
         ],
         "responses": {
@@ -1365,6 +1405,25 @@
               "minimum": 1,
               "title": "Entry Id",
               "type": "integer"
+            }
+          },
+          {
+            "description": "The user's local date (YYYY-MM-DD). Defaults to the server's local date.",
+            "in": "query",
+            "name": "today",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The user's local date (YYYY-MM-DD). Defaults to the server's local date.",
+              "title": "Today"
             }
           }
         ],
@@ -1874,6 +1933,25 @@
               "title": "Slug",
               "type": "string"
             }
+          },
+          {
+            "description": "The user's local date (YYYY-MM-DD). Defaults to the server's local date.",
+            "in": "query",
+            "name": "today",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The user's local date (YYYY-MM-DD). Defaults to the server's local date.",
+              "title": "Today"
+            }
           }
         ],
         "requestBody": {
@@ -2018,6 +2096,272 @@
         ]
       }
     },
+    "/api/shopping-list": {
+      "get": {
+        "description": "Everything the week's meals need, scaled by servings, converted (kg\u2192g, l/tsp/tbsp\u2192ml) and added up. Current and future weeks are recalculated from the plan; past weeks show what was shopped for. `changes` is set when the list changed since the banner was last dismissed.",
+        "operationId": "get_shopping_list",
+        "parameters": [
+          {
+            "description": "Any date in the week (YYYY-MM-DD); defaults to today",
+            "in": "query",
+            "name": "week",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Any date in the week (YYYY-MM-DD); defaults to today",
+              "title": "Week"
+            }
+          },
+          {
+            "description": "The user's local date (YYYY-MM-DD). Defaults to the server's local date.",
+            "in": "query",
+            "name": "today",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The user's local date (YYYY-MM-DD). Defaults to the server's local date.",
+              "title": "Today"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShoppingListOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error: `details.fields` maps each field to a message"
+          }
+        },
+        "summary": "Get a week's shopping list",
+        "tags": [
+          "Shopping list"
+        ]
+      }
+    },
+    "/api/shopping-list/changes/dismiss": {
+      "post": {
+        "operationId": "dismiss_changes",
+        "parameters": [
+          {
+            "description": "Any date in the week (YYYY-MM-DD); defaults to today",
+            "in": "query",
+            "name": "week",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Any date in the week (YYYY-MM-DD); defaults to today",
+              "title": "Week"
+            }
+          },
+          {
+            "description": "The user's local date (YYYY-MM-DD). Defaults to the server's local date.",
+            "in": "query",
+            "name": "today",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The user's local date (YYYY-MM-DD). Defaults to the server's local date.",
+              "title": "Today"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error: `details.fields` maps each field to a message"
+          }
+        },
+        "summary": "Dismiss the 'List updated' banner",
+        "tags": [
+          "Shopping list"
+        ]
+      }
+    },
+    "/api/shopping-list/items/{item_id}": {
+      "patch": {
+        "operationId": "set_ticked",
+        "parameters": [
+          {
+            "description": "Shopping list item id",
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "description": "Shopping list item id",
+              "minimum": 1,
+              "title": "Item Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShoppingTickIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShoppingListItemOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error: `details.fields` maps each field to a message"
+          }
+        },
+        "summary": "Tick or untick an item",
+        "tags": [
+          "Shopping list"
+        ]
+      }
+    },
+    "/api/shopping-list/ticks": {
+      "delete": {
+        "description": "Unticks every item on that week's list.",
+        "operationId": "clear_ticked",
+        "parameters": [
+          {
+            "description": "Any date in the week (YYYY-MM-DD); defaults to today",
+            "in": "query",
+            "name": "week",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Any date in the week (YYYY-MM-DD); defaults to today",
+              "title": "Week"
+            }
+          },
+          {
+            "description": "The user's local date (YYYY-MM-DD). Defaults to the server's local date.",
+            "in": "query",
+            "name": "today",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The user's local date (YYYY-MM-DD). Defaults to the server's local date.",
+              "title": "Today"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error: `details.fields` maps each field to a message"
+          }
+        },
+        "summary": "Clear ticked items",
+        "tags": [
+          "Shopping list"
+        ]
+      }
+    },
     "/api/tags": {
       "get": {
         "operationId": "list_tags",
@@ -2117,6 +2461,10 @@
     {
       "description": "Meals planned per day: real dates, any number of meals a day, servings per meal.",
       "name": "Week plan"
+    },
+    {
+      "description": "The week's combined shopping list: scaled, converted and added up, with ticks.",
+      "name": "Shopping list"
     },
     {
       "description": "Fixed lists, units, tags and ingredient suggestions for forms and filters.",

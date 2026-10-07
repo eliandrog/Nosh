@@ -16,6 +16,7 @@ from app.repositories import settings as settings_repo_module
 from app.repositories.recipes import RecipeQuery
 from app.schemas import RecipeCreate
 from app.services import recipes as service
+from app.services import shopping as shopping_service_module
 
 TODAY = dt.date(2026, 10, 7)
 
@@ -49,6 +50,7 @@ class Repos:
     recipes: MagicMock
     plan: MagicMock
     settings: MagicMock
+    shopping: MagicMock
 
 
 @pytest.fixture
@@ -58,10 +60,12 @@ def repos(monkeypatch: pytest.MonkeyPatch) -> Repos:
         recipes=MagicMock(spec=recipe_repo_module),
         plan=MagicMock(spec=plan_repo_module),
         settings=MagicMock(spec=settings_repo_module),
+        shopping=MagicMock(spec=shopping_service_module),
     )
     monkeypatch.setattr(service, "recipe_repo", mocks.recipes)
     monkeypatch.setattr(service, "plan_repo", mocks.plan)
     monkeypatch.setattr(service, "settings_repo", mocks.settings)
+    monkeypatch.setattr(service, "shopping_service", mocks.shopping)
     return mocks
 
 
@@ -210,7 +214,7 @@ def test_clean_reports_every_bad_field_at_once() -> None:
 def test_update_builtin_recipe_is_forbidden(repos: Repos, session: MagicMock) -> None:
     repos.recipes.get_detail_by_slug.return_value = make_recipe(is_custom=False)
     with pytest.raises(service.RecipeReadOnly) as exc:
-        service.update_recipe(session, "lentil-dahl", recipe_input())
+        service.update_recipe(session, "lentil-dahl", recipe_input(), TODAY)
     assert exc.value.status_code == 403
     session.commit.assert_not_called()
 
@@ -231,4 +235,5 @@ def test_delete_custom_recipe_soft_deletes_and_clears_upcoming_meals(repos: Repo
 
     assert recipe.deleted is True
     repos.plan.delete_from.assert_called_once_with(session, recipe.id, TODAY)
+    repos.shopping.rebuild_weeks_using_recipe.assert_called_once_with(session, recipe.id, TODAY)
     session.commit.assert_called_once()

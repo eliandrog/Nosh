@@ -25,6 +25,7 @@ from app.repositories import settings as settings_repo
 from app.repositories.recipes import RecipeQuery
 from app.schemas import IngredientLine, RecipeCreate, RecipeDetail, RecipeSummary, RecipeUsageOut, TagOut
 from app.services.ingredients import merge_key
+from app.services import shopping as shopping_service
 from app.services.scaling import scale_quantity
 from app.services.slugs import slugify
 from app.services.tags import get_or_create_tags
@@ -219,7 +220,7 @@ def create_recipe(session: Session, data: RecipeCreate) -> RecipeDetail:
     return get_recipe_detail(session, recipe.slug)
 
 
-def update_recipe(session: Session, slug: str, data: RecipeCreate) -> RecipeDetail:
+def update_recipe(session: Session, slug: str, data: RecipeCreate, today: dt.date) -> RecipeDetail:
     recipe = _get_detail_model(session, slug)
     if not recipe.is_custom:
         raise RecipeReadOnly("Built-in Nosh recipes can't be edited.")
@@ -229,8 +230,9 @@ def update_recipe(session: Session, slug: str, data: RecipeCreate) -> RecipeDeta
     recipe.ingredients, recipe.method_steps, recipe.meal_types, recipe.dietary, recipe.tags = [], [], [], [], []
     session.flush()
     _apply(session, recipe, data, name, steps)
+    session.flush()
+    shopping_service.rebuild_weeks_using_recipe(session, recipe.id, today)
     session.commit()
-    # TODO(shopping-list branch): rebuild current/future weeks' shopping lists that use this recipe.
     return get_recipe_detail(session, recipe.slug)
 
 
@@ -241,5 +243,6 @@ def delete_recipe(session: Session, slug: str, today: dt.date) -> None:
         raise RecipeReadOnly("Built-in Nosh recipes can't be deleted.")
     recipe.deleted = True
     plan_repo.delete_from(session, recipe.id, today)
+    session.flush()
+    shopping_service.rebuild_weeks_using_recipe(session, recipe.id, today)
     session.commit()
-    # TODO(shopping-list branch): rebuild current/future weeks' shopping lists.

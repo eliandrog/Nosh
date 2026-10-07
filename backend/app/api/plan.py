@@ -50,8 +50,8 @@ def planned_days(
     description="The meal goes last on that day. Unlimited meals per day.",
     responses=error_responses(404, 422),
 )
-def add_entry(session: SessionDep, data: PlanEntryCreate) -> PlanEntryOut:
-    return plan_service.add_entry(session, data)
+def add_entry(session: SessionDep, data: PlanEntryCreate, today: TodayDep) -> PlanEntryOut:
+    return plan_service.add_entry(session, data, today)
 
 
 @router.patch(
@@ -61,8 +61,8 @@ def add_entry(session: SessionDep, data: PlanEntryCreate) -> PlanEntryOut:
     description="Change servings, swap the recipe, move it to another day (goes last there) or reorder it within its day.",
     responses=error_responses(404, 422),
 )
-def update_entry(session: SessionDep, entry_id: EntryId, data: PlanEntryUpdate) -> PlanEntryOut:
-    return plan_service.update_entry(session, entry_id, data)
+def update_entry(session: SessionDep, entry_id: EntryId, data: PlanEntryUpdate, today: TodayDep) -> PlanEntryOut:
+    return plan_service.update_entry(session, entry_id, data, today)
 
 
 @router.delete(
@@ -72,6 +72,6 @@ def update_entry(session: SessionDep, entry_id: EntryId, data: PlanEntryUpdate) 
     summary="Remove a meal from the plan",
     responses=error_responses(404),
 )
-def delete_entry(session: SessionDep, entry_id: EntryId) -> Response:
-    plan_service.delete_entry(session, entry_id)
+def delete_entry(session: SessionDep, entry_id: EntryId, today: TodayDep) -> Response:
+    plan_service.delete_entry(session, entry_id, today)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
