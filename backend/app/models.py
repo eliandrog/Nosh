@@ -142,7 +142,6 @@ class PlanEntry(SQLModel, table=True):
     # Kept for soft-deleted recipes so past weeks still show them.
     recipe_id: uuid.UUID = Field(foreign_key="recipe.id", index=True)
     servings: int = 1
-    created_at: dt.datetime = Field(default_factory=_now)
 
 
 class ShoppingListItem(SQLModel, table=True):
@@ -157,13 +156,18 @@ class ShoppingListItem(SQLModel, table=True):
     __table_args__ = (
         UniqueConstraint("week_start", "ingredient_id", "unit"),
         CheckConstraint("quantity IS NULL OR quantity > 0", name="ck_shopping_list_item_quantity"),
+        # A line always has an amount, or is "to taste", or both ("5 ml + to taste").
+        CheckConstraint("quantity IS NOT NULL OR to_taste = 1", name="ck_shopping_list_item_amount_or_to_taste"),
     )
 
     id: int | None = Field(default=None, primary_key=True)
     week_start: dt.date = Field(index=True)  # Monday of the week
     ingredient_id: int = Field(foreign_key="ingredient.id")
     unit: str  # merged unit: "g", "ml", "item", "tin", ... (never NULL so the unique rule works)
-    quantity: float | None = None  # merged, scaled total; None = "to taste"
+    quantity: float | None = None  # merged, scaled total of the lines that have an amount
+    # True if any recipe uses this ingredient "to taste". If others give an amount, the amount
+    # wins and the line reads "5 ml + to taste"; if none do, quantity is None ("to taste").
+    to_taste: bool = False
     ticked: bool = False
 
 

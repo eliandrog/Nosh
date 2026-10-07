@@ -43,7 +43,7 @@ def test_same_line_in_another_week_is_allowed(session):
 
 def test_to_taste_line_has_no_quantity(session):
     salt = _ingredient(session, "salt and pepper")
-    item = ShoppingListItem(week_start=WEEK, ingredient_id=salt.id, unit="item", quantity=None)
+    item = ShoppingListItem(week_start=WEEK, ingredient_id=salt.id, unit="item", quantity=None, to_taste=True)
     session.add(item)
     session.commit()
     assert item.quantity is None and item.ticked is False
@@ -59,5 +59,20 @@ def test_quantity_must_be_positive_when_set(session, qty):
 
 def test_line_must_reference_existing_ingredient(session):
     session.add(ShoppingListItem(week_start=WEEK, ingredient_id=999_999, unit="g", quantity=10))
+    with pytest.raises(IntegrityError):
+        session.commit()
+
+
+def test_amount_plus_to_taste_line(session):
+    salt = _ingredient(session, "salt and pepper")
+    item = ShoppingListItem(week_start=WEEK, ingredient_id=salt.id, unit="ml", quantity=5, to_taste=True)
+    session.add(item)
+    session.commit()
+    assert (item.quantity, item.to_taste) == (5, True)
+
+
+def test_line_needs_amount_or_to_taste(session):
+    onion = _ingredient(session, "onion")
+    session.add(ShoppingListItem(week_start=WEEK, ingredient_id=onion.id, unit="item", quantity=None, to_taste=False))
     with pytest.raises(IntegrityError):
         session.commit()

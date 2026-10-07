@@ -23,7 +23,9 @@ uv run uvicorn app.main:app --reload
 
 API: http://localhost:8000 (redirects to the docs) · Docs (Swagger UI): http://localhost:8000/api/docs · OpenAPI spec: http://localhost:8000/api/openapi.json
 
-The SQLite database (`backend/nosh.db`) is created and seeded automatically on startup. To start fresh, stop the server and delete `backend/nosh.db`. Set `NOSH_DB_PATH` to use a different file (tests use a temporary database).
+The SQLite database (`backend/nosh.db`) is created and seeded automatically on startup. To start fresh, stop the server and delete `backend/nosh.db`.
+
+> **After pulling changes to the database schema** (`backend/app/models.py`), delete `backend/nosh.db` before starting the backend. There are no migrations yet: tables are created if missing but existing tables are not altered. The starter recipes are reloaded from the JSON automatically. Set `NOSH_DB_PATH` to use a different file (tests use a temporary database).
 
 Run tests:
 
