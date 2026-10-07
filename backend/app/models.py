@@ -2,7 +2,7 @@
 
 import datetime as dt
 
-from sqlalchemy import CheckConstraint, Index, UniqueConstraint, text
+from sqlalchemy import CheckConstraint, UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -11,19 +11,10 @@ def _now() -> dt.datetime:
 
 
 class Recipe(SQLModel, table=True):
-    __table_args__ = (
-        # Active names are unique; soft-deleted names can be reused.
-        Index(
-            "ux_recipe_name_key_active",
-            "name_key",
-            unique=True,
-            sqlite_where=text("deleted = 0"),
-        ),
-    )
-
-    id: str = Field(primary_key=True)  # slug, never reused
+    # Slug of the name (see app/recipe_ids.py); never reused, so deleted recipes keep theirs.
+    # Active-name uniqueness is enforced by new_recipe_id(), not by a DB constraint.
+    id: str = Field(primary_key=True)
     name: str
-    name_key: str
     cuisine: str
     serves: int = Field(ge=1)
     is_custom: bool = False

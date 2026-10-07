@@ -11,7 +11,7 @@ from pydantic import BaseModel, field_validator
 from sqlmodel import Session, select
 
 from app.constants import CUISINES, DIETARY_LABELS, MEAL_TYPES, UNITS_BY_KEY
-from app.ingredients import merge_key, normalise_name
+from app.ingredients import merge_key
 from app.models import (
     Ingredient,
     MethodStep,
@@ -91,7 +91,6 @@ def seed_recipes(session: Session, path: Path = SEED_FILE) -> int:
             recipe = Recipe(
                 id=r.id,
                 name=r.name,
-                name_key=normalise_name(r.name),
                 cuisine=r.cuisine,
                 serves=r.serves,
                 is_custom=False,

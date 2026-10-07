@@ -16,6 +16,7 @@ from app.models import (
     RecipeTag,
     Tag,
 )
+from app.recipe_ids import DuplicateRecipeName, new_recipe_id, slugify
 from app.seed import SEED_FILE, seed_recipes
 
 
@@ -82,28 +83,69 @@ def test_seed_does_not_modify_the_json(session):
     assert SEED_FILE.read_bytes() == before
 
 
-def _custom(name: str, rid: str) -> Recipe:
-    return Recipe(id=rid, name=name, name_key=name.strip().lower(), cuisine="british", serves=4, is_custom=True)
+def _add_custom(session: Session, name: str) -> Recipe:
+    recipe = Recipe(id=new_recipe_id(session, name), name=name, cuisine="british", serves=4, is_custom=True)
+    session.add(recipe)
+    session.commit()
+    return recipe
 
 
-def test_active_recipe_names_must_be_unique(session):
-    session.add(_custom("Nan's Veggie Stew", "nans-veggie-stew"))
-    session.commit()
-    session.add(_custom("  NAN'S VEGGIE STEW ", "nans-veggie-stew-2"))
-    with pytest.raises(IntegrityError):
-        session.commit()
+@pytest.mark.parametrize(
+    ("name", "slug"),
+    [
+        ("Nan's Veggie Stew", "nans-veggie-stew"),
+        ("  NAN’S   Veggie  STEW! ", "nans-veggie-stew"),
+        ("Chilli con Carne", "chilli-con-carne"),
+        ("Chicken Stir-Fry", "chicken-stir-fry"),
+    ],
+)
+def test_slugify(name, slug):
+    assert slugify(name) == slug
 
 
-def test_soft_deleted_name_can_be_reused(session):
-    old = _custom("Nan's Veggie Stew", "nans-veggie-stew")
-    session.add(old)
+def test_seed_ids_match_slug_rule(session):
+    assert all(r.id == slugify(r.name) for r in session.exec(select(Recipe)))
+
+
+def test_new_recipe_id_is_slug_of_name(session):
+    assert _add_custom(session, "Nan's Veggie Stew").id == "nans-veggie-stew"
+
+
+def test_same_name_as_active_recipe_is_blocked(session):
+    _add_custom(session, "Nan's Veggie Stew")
+    with pytest.raises(DuplicateRecipeName):
+        new_recipe_id(session, "  NAN'S VEGGIE STEW ")
+
+
+def test_same_name_as_builtin_recipe_is_blocked(session):
+    with pytest.raises(DuplicateRecipeName, match="Lentil Dahl"):
+        new_recipe_id(session, "lentil dahl")
+
+
+def test_name_of_deleted_recipe_gets_next_suffix(session):
+    first = _add_custom(session, "Nan's Veggie Stew")
+    first.deleted = True
     session.commit()
-    old.deleted = True
-    session.add(old)
+    second = _add_custom(session, "Nan's Veggie Stew")
+    assert second.id == "nans-veggie-stew-2"
+    second.deleted = True
     session.commit()
-    session.add(_custom("Nan's Veggie Stew", "nans-veggie-stew-2"))
+    assert _add_custom(session, "Nan's Veggie Stew").id == "nans-veggie-stew-3"
+    assert count(session, Recipe) == 23
+
+
+def test_active_suffixed_recipe_still_blocks(session):
+    first = _add_custom(session, "Nan's Veggie Stew")
+    first.deleted = True
     session.commit()
-    assert count(session, Recipe) == 22
+    _add_custom(session, "Nan's Veggie Stew")  # active as nans-veggie-stew-2
+    with pytest.raises(DuplicateRecipeName):
+        new_recipe_id(session, "Nan's Veggie Stew")
+
+
+def test_name_without_letters_or_numbers_is_rejected(session):
+    with pytest.raises(ValueError):
+        new_recipe_id(session, " !!! ")
 
 
 def test_plan_entry_servings_must_be_positive(session):
