@@ -14,7 +14,7 @@ TODAY = dt.date(2026, 10, 7)
 
 def slugs(response: Response) -> list[str]:
     assert response.status_code == 200, response.text
-    return [r["slug"] for r in response.json()]
+    return [r["slug"] for r in response.json()["items"]]
 
 
 def error(response: Response, status: int) -> dict[str, Any]:
@@ -175,3 +175,42 @@ def test_delete_removes_upcoming_meals_keeps_history_and_frees_the_name(client: 
     assert client.get("/api/recipes/nans-veggie-stew").status_code == 404
     assert "nans-veggie-stew" not in slugs(client.get("/api/recipes", params={"all": "true"}))
     assert client.post("/api/recipes", json=new_recipe()).json()["slug"] == "nans-veggie-stew-2"
+
+
+# ---------- pagination ----------
+
+
+def page(client: TestClient, **params: Any) -> dict[str, Any]:
+    response = client.get("/api/recipes", params={"all": "true", "pageSize": 5} | params)
+    assert response.status_code == 200, response.text
+    return response.json()
+
+
+def test_pages_split_results_in_stable_name_order(client: TestClient) -> None:
+    pages = [page(client, page=n) for n in (1, 2, 3, 4)]
+    assert [len(p["items"]) for p in pages] == [5, 5, 5, 5]
+    assert {(p["total"], p["totalPages"], p["pageSize"]) for p in pages} == {(20, 4, 5)}
+
+    names = [r["name"] for p in pages for r in p["items"]]
+    assert len(set(names)) == 20  # no recipe repeated or skipped across pages
+    assert names == sorted(names, key=str.lower)
+
+
+def test_totals_follow_filters_and_search(client: TestClient) -> None:
+    vegetarian = page(client, dietary="vegetarian")
+    assert (vegetarian["total"], vegetarian["totalPages"], len(vegetarian["items"])) == (10, 2, 5)
+    assert len(page(client, dietary="vegetarian", page=2)["items"]) == 5
+
+    searched = page(client, q="soup")
+    assert (searched["total"], searched["totalPages"], [r["slug"] for r in searched["items"]]) == (1, 1, ["tomato-soup"])
+
+
+def test_page_past_the_end_is_empty_with_correct_totals(client: TestClient) -> None:
+    beyond = page(client, page=9)
+    assert (beyond["items"], beyond["total"], beyond["page"], beyond["totalPages"]) == ([], 20, 9, 4)
+
+
+def test_paging_parameters_are_validated(client: TestClient) -> None:
+    for params in ({"page": 0}, {"pageSize": 0}, {"pageSize": 51}):
+        err = error(client.get("/api/recipes", params=params), 422)
+        assert set(err["details"]["fields"]) == set(params)

@@ -111,31 +111,52 @@ def test_detail_scaled_to_servings() -> None:
 
 def test_list_defaults_to_saved_dietary_preferences(repos: Repos, session: MagicMock) -> None:
     repos.settings.get_dietary.return_value = [DietaryLabel.VEGETARIAN]
+    repos.recipes.count_summaries.return_value = 1
     repos.recipes.list_summaries.return_value = [make_recipe()]
 
     result = service.list_recipes(session)
 
-    repos.recipes.list_summaries.assert_called_once_with(session, RecipeQuery(dietary=(DietaryLabel.VEGETARIAN,)))
-    assert [r.slug for r in result] == ["lentil-dahl"]
+    query = RecipeQuery(dietary=(DietaryLabel.VEGETARIAN,))
+    repos.recipes.count_summaries.assert_called_once_with(session, query)
+    repos.recipes.list_summaries.assert_called_once_with(session, query, limit=service.DEFAULT_PAGE_SIZE, offset=0)
+    assert [r.slug for r in result.items] == ["lentil-dahl"]
 
 
 def test_list_with_all_ignores_preferences(repos: Repos, session: MagicMock) -> None:
+    repos.recipes.count_summaries.return_value = 0
     repos.recipes.list_summaries.return_value = []
     service.list_recipes(session, include_all=True)
     repos.settings.get_dietary.assert_not_called()
-    repos.recipes.list_summaries.assert_called_once_with(session, RecipeQuery())
+    repos.recipes.count_summaries.assert_called_once_with(session, RecipeQuery())
 
 
 def test_list_explicit_filters_are_passed_through(repos: Repos, session: MagicMock) -> None:
+    repos.recipes.count_summaries.return_value = 0
     repos.recipes.list_summaries.return_value = []
     service.list_recipes(
         session, q="lentil", meal_types=[MealType.DINNER], dietary=[DietaryLabel.VEGAN], tag_keys=["quick"]
     )
     repos.settings.get_dietary.assert_not_called()
-    repos.recipes.list_summaries.assert_called_once_with(
+    repos.recipes.count_summaries.assert_called_once_with(
         session,
         RecipeQuery(q="lentil", meal_types=(MealType.DINNER,), dietary=(DietaryLabel.VEGAN,), tag_keys=("quick",)),
     )
+
+
+@pytest.mark.parametrize(
+    ("total", "page", "offset", "total_pages"),
+    [(12, 1, 0, 3), (12, 3, 10, 3), (10, 2, 5, 2), (0, 1, 0, 1), (12, 9, 40, 3)],
+)
+def test_list_pages_with_offset_and_total_pages(
+    repos: Repos, session: MagicMock, total: int, page: int, offset: int, total_pages: int
+) -> None:
+    repos.recipes.count_summaries.return_value = total
+    repos.recipes.list_summaries.return_value = []
+
+    result = service.list_recipes(session, include_all=True, page=page, page_size=5)
+
+    repos.recipes.list_summaries.assert_called_once_with(session, RecipeQuery(), limit=5, offset=offset)
+    assert (result.total, result.page, result.page_size, result.total_pages) == (total, page, 5, total_pages)
 
 
 # ---------- get / usage ----------
