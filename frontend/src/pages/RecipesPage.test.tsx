@@ -264,6 +264,7 @@ describe('RecipesPage filters', () => {
   })
 
   it('restores filters from the URL and removes one with its chip', async () => {
+    getPreferences.mockResolvedValue({ dietary: ['vegetarian'] })
     listTags.mockResolvedValue([LOW_COST])
     stubCountsAndList()
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
@@ -296,10 +297,28 @@ describe('RecipesPage filters', () => {
     expect(screen.getByRole('button', { name: 'Filters' })).toBeInTheDocument() // nothing active any more
   })
 
+  it('choosing exactly the saved preferences stops pinning dietary in the URL', async () => {
+    getPreferences.mockResolvedValue({ dietary: ['vegetarian'] })
+    stubCountsAndList()
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    const router = renderPage('/recipes?dietary=vegan')
+
+    const sheet = await openSheet(user, /^Filters, 1 active$/)
+    await user.click(within(sheet).getByRole('button', { name: /Vegan/ }))
+    await user.click(within(sheet).getByRole('button', { name: /Vegetarian/ }))
+    await act(() => vi.advanceTimersByTimeAsync(COUNT_DELAY_MS))
+    await user.click(await within(sheet).findByRole('button', { name: 'Show 7 recipes' }))
+
+    // Same as saved preferences: not stored, so the list keeps following the latest saved preferences.
+    expect(router.state.location.search).toBe('')
+    expect(lastListCall()).toEqual({ page: 1, pageSize: PAGE_SIZE })
+  })
+
   it('offers to clear filters when nothing matches', async () => {
+    getPreferences.mockResolvedValue({ dietary: ['vegetarian'] })
     listRecipes.mockResolvedValueOnce(page([], { total: 0 })).mockResolvedValue(page([DAHL, SOUP]))
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
-    const router = renderPage('/recipes?mealType=dessert')
+    const router = renderPage('/recipes?mealType=dessert&dietary=vegan')
 
     expect(await screen.findByText('No recipes match these filters.')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Clear filters' }))

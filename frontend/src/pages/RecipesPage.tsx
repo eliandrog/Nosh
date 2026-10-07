@@ -13,7 +13,7 @@ import { SearchBar } from '../components/SearchBar'
 import { Button, Chip } from '../components/ui'
 import { PlusIcon } from '../components/icons'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
-import { activeCount, applyPending, effectiveDietary, parseFilters, toQuery, writeFilters } from '../lib/recipeFilters'
+import { activeCount, applyPending, dietaryToStore, effectiveDietary, parseFilters, toQuery, writeFilters } from '../lib/recipeFilters'
 import type { AppliedFilters, PendingFilters } from '../lib/recipeFilters'
 import './RecipesPage.css'
 
@@ -144,17 +144,17 @@ export function RecipesPage() {
 
   const applySheet = (pending: PendingFilters) => {
     setFiltersOpen(false)
-    setFilters(applyPending(pending, applied, saved))
+    setFilters(applyPending(pending, saved))
   }
 
   const removeFilter = (chip: FilterChip) => {
-    if (chip.group === 'dietary') setFilters({ ...applied, dietary: inForce.dietary.filter((d) => d !== chip.value) })
+    if (chip.group === 'dietary') setFilters({ ...applied, dietary: dietaryToStore(inForce.dietary.filter((d) => d !== chip.value), saved) })
     else if (chip.group === 'mealTypes') setFilters({ ...applied, mealTypes: applied.mealTypes.filter((m) => m !== chip.value) })
     else setFilters({ ...applied, tags: applied.tags.filter((t) => t !== chip.value) })
   }
 
-  // Clearing dietary is explicit (all=true), so saved preferences don't silently come back.
-  const clearFilters = () => setFilters({ mealTypes: [], dietary: [], tags: [] })
+  // Clearing dietary is explicit (all=true) unless there are no saved preferences to come back.
+  const clearFilters = () => setFilters({ mealTypes: [], dietary: dietaryToStore([], saved), tags: [] })
 
   const goToPage = (next: number) => {
     setParams((prev) => {

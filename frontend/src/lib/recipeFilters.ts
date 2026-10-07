@@ -57,12 +57,16 @@ export function toQuery(applied: AppliedFilters): Pick<RecipeFilters, 'mealType'
 const sameSet = <T>(a: readonly T[], b: readonly T[]) => a.length === b.length && a.every((v) => b.includes(v))
 
 /**
- * Turns the sheet's choices into applied filters. Dietary stays "from preferences" (null) when the
- * user left it exactly as their saved preferences; otherwise it becomes explicit.
+ * Dietary choice to store. When it matches the saved preferences it isn't pinned (null), so links keep
+ * following the latest saved preferences; only a deliberate difference is stored in the URL.
  */
-export function applyPending(pending: PendingFilters, current: AppliedFilters, saved: DietaryLabel[]): AppliedFilters {
-  const keepDefault = current.dietary === null && sameSet(pending.dietary, saved)
-  return { mealTypes: pending.mealTypes, tags: pending.tags, dietary: keepDefault ? null : pending.dietary }
+export function dietaryToStore(chosen: DietaryLabel[], saved: DietaryLabel[]): DietaryLabel[] | null {
+  return sameSet(chosen, saved) ? null : chosen
+}
+
+/** Turns the sheet's choices into applied filters. */
+export function applyPending(pending: PendingFilters, saved: DietaryLabel[]): AppliedFilters {
+  return { mealTypes: pending.mealTypes, tags: pending.tags, dietary: dietaryToStore(pending.dietary, saved) }
 }
 
 /** Writes the filters into the URL, keeping the search and going back to page 1. */
