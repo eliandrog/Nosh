@@ -2,7 +2,15 @@ import { describe, expect, it } from 'vitest'
 import { emptyForm, mapServerFields, toSubmission, validate } from './recipeForm'
 import type { IngredientRow, RecipeForm } from './recipeForm'
 
-const row = (patch: Partial<IngredientRow>): IngredientRow => ({ id: 'x', quantity: '', unit: 'g', item: '', prep: '', ...patch })
+const row = (patch: Partial<IngredientRow>): IngredientRow => ({
+  id: 'x',
+  quantity: '',
+  unit: 'g',
+  ingredientId: null,
+  item: '',
+  prep: '',
+  ...patch,
+})
 
 function filledForm(patch: Partial<RecipeForm> = {}): RecipeForm {
   return {
@@ -57,6 +65,16 @@ describe('toSubmission', () => {
     })
     expect(ingredientRows).toEqual([1, 2])
     expect(stepRows).toEqual([1])
+  })
+
+  it('sends picked ingredients by id and typed-only ones by name', () => {
+    const form = filledForm({
+      ingredients: [row({ ingredientId: 2, item: 'onion', quantity: '1', unit: '' }), row({ item: ' pak choi ' })],
+    })
+    expect(toSubmission(form).payload.ingredients).toEqual([
+      { ingredientId: 2, quantity: 1, unit: null, prep: null },
+      { item: 'pak choi', quantity: null, unit: 'g', prep: null },
+    ])
   })
 })
 
