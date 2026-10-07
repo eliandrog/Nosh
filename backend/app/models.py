@@ -134,12 +134,26 @@ class PlanEntry(SQLModel, table=True):
     created_at: dt.datetime = Field(default_factory=_now)
 
 
-class ShoppingTick(SQLModel, table=True):
-    __tablename__ = "shopping_tick"
+class ShoppingListItem(SQLModel, table=True):
+    """A stored line of a week's shopping list.
 
-    week_start: dt.date = Field(primary_key=True)  # Monday
-    line_key: str = Field(primary_key=True)  # ingredient_id + unit group
-    ticked_at: dt.datetime = Field(default_factory=_now)
+    Rebuilt from the plan whenever the current or a future week changes; past weeks are
+    never rebuilt, so they keep what was actually shopped for. Lines whose units can't be
+    converted stay separate (e.g. coconut milk in "ml" and in "tin").
+    """
+
+    __tablename__ = "shopping_list_item"
+    __table_args__ = (
+        UniqueConstraint("week_start", "ingredient_id", "unit"),
+        CheckConstraint("quantity IS NULL OR quantity > 0", name="ck_shopping_list_item_quantity"),
+    )
+
+    id: int | None = Field(default=None, primary_key=True)
+    week_start: dt.date = Field(index=True)  # Monday of the week
+    ingredient_id: int = Field(foreign_key="ingredient.id")
+    unit: str  # merged unit: "g", "ml", "item", "tin", ... (never NULL so the unique rule works)
+    quantity: float | None = None  # merged, scaled total; None = "to taste"
+    ticked: bool = False
 
 
 class Profile(SQLModel, table=True):
@@ -166,6 +180,6 @@ __all__ = [
     "RecipeIngredient",
     "RecipeMealType",
     "RecipeTag",
-    "ShoppingTick",
+    "ShoppingListItem",
     "Tag",
 ]
