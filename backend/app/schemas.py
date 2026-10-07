@@ -53,6 +53,16 @@ class RecipeSummary(ApiModel):
     default_image: str  # ASSUMPTION (5): emoji per first meal type for now
 
 
+class RecipePage(ApiModel):
+    """GET /api/recipes: one page of results. A page past the end has no items but the right totals."""
+
+    items: list[RecipeSummary]
+    total: int  # matching recipes across all pages
+    page: int  # 1-based
+    page_size: int
+    total_pages: int  # at least 1
+
+
 class IngredientLine(ApiModel):
     ingredient_id: int
     item: str
@@ -224,6 +234,7 @@ CONTRACT_MODELS: tuple[type[BaseModel], ...] = (
     TagOut,
     TagIn,
     RecipeSummary,
+    RecipePage,
     RecipeDetail,
     IngredientLine,
     IngredientLineIn,
