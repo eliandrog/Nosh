@@ -1,0 +1,1157 @@
+[
+  {
+    "id": "full-english-breakfast",
+    "name": "Full English Breakfast",
+    "cuisine": "british",
+    "mealType": [
+      "breakfast"
+    ],
+    "dietary": [],
+    "tags": [],
+    "serves": 2,
+    "ingredients": [
+      {
+        "item": "pork sausages",
+        "quantity": 4,
+        "unit": null
+      },
+      {
+        "item": "back bacon",
+        "quantity": 4,
+        "unit": "rasher"
+      },
+      {
+        "item": "eggs",
+        "quantity": 2,
+        "unit": null
+      },
+      {
+        "item": "baked beans",
+        "quantity": 1,
+        "unit": "tin"
+      },
+      {
+        "item": "tomatoes",
+        "quantity": 2,
+        "unit": null,
+        "prep": "halved"
+      },
+      {
+        "item": "mushrooms",
+        "quantity": 100,
+        "unit": "g"
+      },
+      {
+        "item": "bread",
+        "quantity": 2,
+        "unit": "slice"
+      }
+    ],
+    "method": [
+      "Heat a little oil in a large frying pan and cook the sausages over medium heat for 12 to 15 minutes, turning, until browned.",
+      "Add the bacon and cook for 3 to 4 minutes each side.",
+      "Add the tomatoes and mushrooms and fry for 5 minutes.",
+      "Warm the beans in a small pan and fry or poach the eggs to your liking.",
+      "Toast the bread and serve everything together."
+    ]
+  },
+  {
+    "id": "porridge-with-berries-and-honey",
+    "name": "Porridge with Berries and Honey",
+    "cuisine": "british",
+    "mealType": [
+      "breakfast"
+    ],
+    "dietary": [
+      "vegetarian"
+    ],
+    "tags": [
+      "quick"
+    ],
+    "serves": 2,
+    "ingredients": [
+      {
+        "item": "porridge oats",
+        "quantity": 100,
+        "unit": "g"
+      },
+      {
+        "item": "milk",
+        "quantity": 500,
+        "unit": "ml"
+      },
+      {
+        "item": "mixed berries",
+        "quantity": 100,
+        "unit": "g"
+      },
+      {
+        "item": "honey",
+        "quantity": 2,
+        "unit": "tbsp"
+      }
+    ],
+    "method": [
+      "Put the oats and milk in a pan over medium heat.",
+      "Stir for 4 to 5 minutes until thick and creamy.",
+      "Spoon into bowls and top with the berries.",
+      "Drizzle with honey and serve."
+    ]
+  },
+  {
+    "id": "scrambled-eggs-on-toast",
+    "name": "Scrambled Eggs on Toast",
+    "cuisine": "british",
+    "mealType": [
+      "breakfast"
+    ],
+    "dietary": [
+      "vegetarian"
+    ],
+    "tags": [
+      "quick"
+    ],
+    "serves": 2,
+    "ingredients": [
+      {
+        "item": "eggs",
+        "quantity": 4,
+        "unit": null
+      },
+      {
+        "item": "milk",
+        "quantity": 2,
+        "unit": "tbsp"
+      },
+      {
+        "item": "butter",
+        "quantity": 15,
+        "unit": "g"
+      },
+      {
+        "item": "bread",
+        "quantity": 2,
+        "unit": "slice"
+      },
+      {
+        "item": "salt and pepper",
+        "quantity": null,
+        "unit": null
+      }
+    ],
+    "method": [
+      "Beat the eggs with the milk and a pinch of salt and pepper.",
+      "Melt the butter in a non-stick pan over low heat.",
+      "Pour in the eggs and stir gently until just set.",
+      "Toast the bread and serve the eggs on top."
+    ]
+  },
+  {
+    "id": "ploughmans-lunch",
+    "name": "Ploughman's Lunch",
+    "cuisine": "british",
+    "mealType": [
+      "lunch"
+    ],
+    "dietary": [
+      "vegetarian"
+    ],
+    "tags": [
+      "quick"
+    ],
+    "serves": 2,
+    "ingredients": [
+      {
+        "item": "cheddar",
+        "quantity": 200,
+        "unit": "g"
+      },
+      {
+        "item": "baguette",
+        "quantity": 1,
+        "unit": null
+      },
+      {
+        "item": "branston pickle",
+        "quantity": 4,
+        "unit": "tbsp"
+      },
+      {
+        "item": "apple",
+        "quantity": 1,
+        "unit": null,
+        "prep": "sliced"
+      },
+      {
+        "item": "cherry tomatoes",
+        "quantity": 100,
+        "unit": "g"
+      },
+      {
+        "item": "salad leaves",
+        "quantity": 1,
+        "unit": "handful"
+      }
+    ],
+    "method": [
+      "Cut the cheddar into thick wedges.",
+      "Slice the baguette.",
+      "Arrange the cheese, bread, apple, tomatoes and leaves on a board.",
+      "Serve with a good spoon of pickle."
+    ]
+  },
+  {
+    "id": "jacket-potato-with-cheese-and-beans",
+    "name": "Jacket Potato with Cheese and Beans",
+    "cuisine": "british",
+    "mealType": [
+      "lunch",
+      "dinner"
+    ],
+    "dietary": [
+      "vegetarian",
+      "gluten-free"
+    ],
+    "tags": [],
+    "serves": 2,
+    "ingredients": [
+      {
+        "item": "baking potatoes",
+        "quantity": 2,
+        "unit": null
+      },
+      {
+        "item": "baked beans",
+        "quantity": 1,
+        "unit": "tin"
+      },
+      {
+        "item": "cheddar",
+        "quantity": 100,
+        "unit": "g",
+        "prep": "grated"
+      },
+      {
+        "item": "butter",
+        "quantity": 20,
+        "unit": "g"
+      }
+    ],
+    "method": [
+      "Heat the oven to 200C and prick the potatoes all over.",
+      "Bake for 60 to 75 minutes until soft inside and crisp outside.",
+      "Warm the beans in a small pan.",
+      "Split the potatoes, add the butter, then top with the beans and cheese."
+    ]
+  },
+  {
+    "id": "cheese-and-ham-toastie",
+    "name": "Cheese and Ham Toastie",
+    "cuisine": "british",
+    "mealType": [
+      "lunch"
+    ],
+    "dietary": [],
+    "tags": [
+      "quick"
+    ],
+    "serves": 1,
+    "ingredients": [
+      {
+        "item": "bread",
+        "quantity": 2,
+        "unit": "slice"
+      },
+      {
+        "item": "cheddar",
+        "quantity": 60,
+        "unit": "g",
+        "prep": "grated"
+      },
+      {
+        "item": "ham",
+        "quantity": 2,
+        "unit": "slice"
+      },
+      {
+        "item": "butter",
+        "quantity": 15,
+        "unit": "g"
+      }
+    ],
+    "method": [
+      "Butter the bread on the outside.",
+      "Fill with the cheese and ham.",
+      "Toast in a pan or toastie maker for 3 to 4 minutes each side until golden."
+    ]
+  },
+  {
+    "id": "tomato-soup",
+    "name": "Tomato Soup",
+    "cuisine": "british",
+    "mealType": [
+      "lunch"
+    ],
+    "dietary": [
+      "vegetarian",
+      "vegan",
+      "gluten-free"
+    ],
+    "tags": [
+      "batch-cook"
+    ],
+    "serves": 4,
+    "ingredients": [
+      {
+        "item": "chopped tomatoes",
+        "quantity": 2,
+        "unit": "tin"
+      },
+      {
+        "item": "onion",
+        "quantity": 1,
+        "unit": null,
+        "prep": "chopped"
+      },
+      {
+        "item": "garlic",
+        "quantity": 2,
+        "unit": "clove",
+        "prep": "crushed"
+      },
+      {
+        "item": "vegetable stock",
+        "quantity": 500,
+        "unit": "ml"
+      },
+      {
+        "item": "olive oil",
+        "quantity": 2,
+        "unit": "tbsp"
+      },
+      {
+        "item": "salt and pepper",
+        "quantity": null,
+        "unit": null
+      }
+    ],
+    "method": [
+      "Heat the oil and soften the onion for 5 minutes.",
+      "Add the garlic and cook for 1 minute.",
+      "Add the tomatoes and stock, then simmer for 15 minutes.",
+      "Blend until smooth, season and serve."
+    ]
+  },
+  {
+    "id": "halloumi-and-roasted-vegetable-salad",
+    "name": "Halloumi and Roasted Vegetable Salad",
+    "cuisine": "mediterranean",
+    "mealType": [
+      "lunch",
+      "dinner"
+    ],
+    "dietary": [
+      "vegetarian",
+      "gluten-free"
+    ],
+    "tags": [],
+    "serves": 2,
+    "ingredients": [
+      {
+        "item": "halloumi",
+        "quantity": 250,
+        "unit": "g",
+        "prep": "sliced"
+      },
+      {
+        "item": "courgette",
+        "quantity": 1,
+        "unit": null,
+        "prep": "sliced"
+      },
+      {
+        "item": "red pepper",
+        "quantity": 1,
+        "unit": null,
+        "prep": "sliced"
+      },
+      {
+        "item": "red onion",
+        "quantity": 1,
+        "unit": null,
+        "prep": "cut into wedges"
+      },
+      {
+        "item": "cherry tomatoes",
+        "quantity": 100,
+        "unit": "g"
+      },
+      {
+        "item": "olive oil",
+        "quantity": 2,
+        "unit": "tbsp"
+      },
+      {
+        "item": "balsamic vinegar",
+        "quantity": 1,
+        "unit": "tbsp"
+      },
+      {
+        "item": "salad leaves",
+        "quantity": 100,
+        "unit": "g"
+      }
+    ],
+    "method": [
+      "Heat the oven to 200C. Toss the courgette, pepper, onion and tomatoes with 1 tbsp of the oil.",
+      "Roast for 20 to 25 minutes.",
+      "Fry the halloumi in the rest of the oil for 2 minutes each side until golden.",
+      "Toss the roasted veg with the leaves, top with the halloumi and drizzle with balsamic."
+    ]
+  },
+  {
+    "id": "chicken-tikka-masala",
+    "name": "Chicken Tikka Masala",
+    "cuisine": "indian",
+    "mealType": [
+      "dinner"
+    ],
+    "dietary": [
+      "gluten-free"
+    ],
+    "tags": [],
+    "serves": 4,
+    "ingredients": [
+      {
+        "item": "chicken breast",
+        "quantity": 600,
+        "unit": "g",
+        "prep": "cubed"
+      },
+      {
+        "item": "onion",
+        "quantity": 1,
+        "unit": null,
+        "prep": "chopped"
+      },
+      {
+        "item": "garlic",
+        "quantity": 3,
+        "unit": "clove",
+        "prep": "crushed"
+      },
+      {
+        "item": "ginger",
+        "quantity": 1,
+        "unit": "thumb",
+        "prep": "grated"
+      },
+      {
+        "item": "tikka curry paste",
+        "quantity": 4,
+        "unit": "tbsp"
+      },
+      {
+        "item": "chopped tomatoes",
+        "quantity": 1,
+        "unit": "tin"
+      },
+      {
+        "item": "double cream",
+        "quantity": 150,
+        "unit": "ml"
+      },
+      {
+        "item": "basmati rice",
+        "quantity": 300,
+        "unit": "g"
+      }
+    ],
+    "method": [
+      "Fry the chicken in a little oil until sealed, then set aside.",
+      "Soften the onion, garlic and ginger for 5 minutes.",
+      "Stir in the paste and cook for 2 minutes.",
+      "Add the tomatoes and chicken, then simmer for 15 minutes.",
+      "Stir in the cream and warm through. Serve with the cooked rice."
+    ]
+  },
+  {
+    "id": "spaghetti-bolognese",
+    "name": "Spaghetti Bolognese",
+    "cuisine": "italian",
+    "mealType": [
+      "dinner"
+    ],
+    "dietary": [],
+    "tags": [
+      "batch-cook",
+      "freezer-friendly"
+    ],
+    "serves": 4,
+    "ingredients": [
+      {
+        "item": "beef mince",
+        "quantity": 500,
+        "unit": "g"
+      },
+      {
+        "item": "onion",
+        "quantity": 1,
+        "unit": null,
+        "prep": "chopped"
+      },
+      {
+        "item": "garlic",
+        "quantity": 2,
+        "unit": "clove",
+        "prep": "crushed"
+      },
+      {
+        "item": "carrot",
+        "quantity": 1,
+        "unit": null,
+        "prep": "diced"
+      },
+      {
+        "item": "chopped tomatoes",
+        "quantity": 1,
+        "unit": "tin"
+      },
+      {
+        "item": "tomato puree",
+        "quantity": 2,
+        "unit": "tbsp"
+      },
+      {
+        "item": "spaghetti",
+        "quantity": 400,
+        "unit": "g"
+      },
+      {
+        "item": "beef stock cube",
+        "quantity": 1,
+        "unit": null
+      }
+    ],
+    "method": [
+      "Brown the mince in a large pan, then set aside.",
+      "Soften the onion, carrot and garlic for 5 minutes.",
+      "Return the mince, then add the tomatoes, puree and crumbled stock cube.",
+      "Simmer for 25 to 30 minutes.",
+      "Cook the spaghetti and serve with the sauce on top."
+    ]
+  },
+  {
+    "id": "shepherds-pie",
+    "name": "Shepherd's Pie",
+    "cuisine": "british",
+    "mealType": [
+      "dinner"
+    ],
+    "dietary": [
+      "gluten-free"
+    ],
+    "tags": [
+      "freezer-friendly"
+    ],
+    "serves": 4,
+    "ingredients": [
+      {
+        "item": "lamb mince",
+        "quantity": 500,
+        "unit": "g"
+      },
+      {
+        "item": "onion",
+        "quantity": 1,
+        "unit": null,
+        "prep": "chopped"
+      },
+      {
+        "item": "carrots",
+        "quantity": 2,
+        "unit": null,
+        "prep": "diced"
+      },
+      {
+        "item": "frozen peas",
+        "quantity": 100,
+        "unit": "g"
+      },
+      {
+        "item": "chopped tomatoes",
+        "quantity": 1,
+        "unit": "tin"
+      },
+      {
+        "item": "beef stock cube",
+        "quantity": 1,
+        "unit": null
+      },
+      {
+        "item": "potatoes",
+        "quantity": 900,
+        "unit": "g",
+        "prep": "peeled and chopped"
+      },
+      {
+        "item": "butter",
+        "quantity": 40,
+        "unit": "g"
+      },
+      {
+        "item": "milk",
+        "quantity": 50,
+        "unit": "ml"
+      }
+    ],
+    "method": [
+      "Heat the oven to 200C. Brown the lamb, then add the onion and carrots for 5 minutes.",
+      "Add the tomatoes, peas and crumbled stock cube, then simmer for 20 minutes.",
+      "Boil the potatoes until soft, then mash with the butter and milk.",
+      "Spoon the mince into a dish, top with the mash and bake for 25 minutes until golden."
+    ]
+  },
+  {
+    "id": "fish-and-chips",
+    "name": "Fish and Chips",
+    "cuisine": "british",
+    "mealType": [
+      "dinner"
+    ],
+    "dietary": [],
+    "tags": [],
+    "serves": 2,
+    "ingredients": [
+      {
+        "item": "cod fillets",
+        "quantity": 2,
+        "unit": null
+      },
+      {
+        "item": "potatoes",
+        "quantity": 700,
+        "unit": "g",
+        "prep": "cut into chips"
+      },
+      {
+        "item": "frozen peas",
+        "quantity": 200,
+        "unit": "g"
+      },
+      {
+        "item": "plain flour",
+        "quantity": 50,
+        "unit": "g"
+      },
+      {
+        "item": "oil",
+        "quantity": 2,
+        "unit": "tbsp"
+      },
+      {
+        "item": "lemon",
+        "quantity": 1,
+        "unit": null,
+        "prep": "cut into wedges"
+      }
+    ],
+    "method": [
+      "Heat the oven to 220C. Toss the chips in 1 tbsp of the oil and roast for 30 to 35 minutes.",
+      "Dust the cod in seasoned flour.",
+      "Fry the cod in the rest of the oil for 3 to 4 minutes each side until cooked through.",
+      "Boil the peas for 3 minutes and mash lightly. Serve with the lemon wedges."
+    ]
+  },
+  {
+    "id": "chilli-con-carne",
+    "name": "Chilli con Carne",
+    "cuisine": "mexican",
+    "mealType": [
+      "dinner"
+    ],
+    "dietary": [
+      "gluten-free",
+      "dairy-free"
+    ],
+    "tags": [
+      "batch-cook",
+      "freezer-friendly"
+    ],
+    "serves": 4,
+    "ingredients": [
+      {
+        "item": "beef mince",
+        "quantity": 500,
+        "unit": "g"
+      },
+      {
+        "item": "onion",
+        "quantity": 1,
+        "unit": null,
+        "prep": "chopped"
+      },
+      {
+        "item": "garlic",
+        "quantity": 2,
+        "unit": "clove",
+        "prep": "crushed"
+      },
+      {
+        "item": "red pepper",
+        "quantity": 1,
+        "unit": null,
+        "prep": "chopped"
+      },
+      {
+        "item": "kidney beans",
+        "quantity": 1,
+        "unit": "tin",
+        "prep": "drained"
+      },
+      {
+        "item": "chopped tomatoes",
+        "quantity": 1,
+        "unit": "tin"
+      },
+      {
+        "item": "chilli powder",
+        "quantity": 1,
+        "unit": "tbsp"
+      },
+      {
+        "item": "ground cumin",
+        "quantity": 1,
+        "unit": "tsp"
+      },
+      {
+        "item": "rice",
+        "quantity": 300,
+        "unit": "g"
+      }
+    ],
+    "method": [
+      "Brown the mince, then add the onion, garlic and pepper for 5 minutes.",
+      "Stir in the chilli powder and cumin and cook for 1 minute.",
+      "Add the tomatoes and beans, then simmer for 25 minutes.",
+      "Cook the rice and serve with the chilli."
+    ]
+  },
+  {
+    "id": "chicken-stir-fry",
+    "name": "Chicken Stir-Fry",
+    "cuisine": "chinese",
+    "mealType": [
+      "dinner"
+    ],
+    "dietary": [
+      "dairy-free"
+    ],
+    "tags": [
+      "quick"
+    ],
+    "serves": 2,
+    "ingredients": [
+      {
+        "item": "chicken breast",
+        "quantity": 2,
+        "unit": null,
+        "prep": "sliced"
+      },
+      {
+        "item": "red pepper",
+        "quantity": 1,
+        "unit": null,
+        "prep": "sliced"
+      },
+      {
+        "item": "broccoli",
+        "quantity": 150,
+        "unit": "g",
+        "prep": "in florets"
+      },
+      {
+        "item": "carrot",
+        "quantity": 1,
+        "unit": null,
+        "prep": "sliced"
+      },
+      {
+        "item": "garlic",
+        "quantity": 2,
+        "unit": "clove",
+        "prep": "sliced"
+      },
+      {
+        "item": "ginger",
+        "quantity": 1,
+        "unit": "thumb",
+        "prep": "grated"
+      },
+      {
+        "item": "soy sauce",
+        "quantity": 3,
+        "unit": "tbsp"
+      },
+      {
+        "item": "egg noodles",
+        "quantity": 200,
+        "unit": "g"
+      },
+      {
+        "item": "sesame oil",
+        "quantity": 1,
+        "unit": "tbsp"
+      }
+    ],
+    "method": [
+      "Cook the noodles to packet instructions, then drain.",
+      "Heat the sesame oil in a wok and stir-fry the chicken for 4 to 5 minutes.",
+      "Add the vegetables, garlic and ginger and stir-fry for 4 minutes.",
+      "Add the noodles and soy sauce, toss together and serve."
+    ]
+  },
+  {
+    "id": "thai-green-curry",
+    "name": "Thai Green Curry",
+    "cuisine": "thai",
+    "mealType": [
+      "dinner"
+    ],
+    "dietary": [
+      "dairy-free",
+      "gluten-free"
+    ],
+    "tags": [],
+    "serves": 4,
+    "ingredients": [
+      {
+        "item": "chicken thighs",
+        "quantity": 600,
+        "unit": "g",
+        "prep": "sliced"
+      },
+      {
+        "item": "green curry paste",
+        "quantity": 3,
+        "unit": "tbsp"
+      },
+      {
+        "item": "coconut milk",
+        "quantity": 1,
+        "unit": "tin"
+      },
+      {
+        "item": "green beans",
+        "quantity": 150,
+        "unit": "g",
+        "prep": "trimmed"
+      },
+      {
+        "item": "aubergine",
+        "quantity": 1,
+        "unit": null,
+        "prep": "cubed"
+      },
+      {
+        "item": "fish sauce",
+        "quantity": 1,
+        "unit": "tbsp"
+      },
+      {
+        "item": "jasmine rice",
+        "quantity": 300,
+        "unit": "g"
+      }
+    ],
+    "method": [
+      "Fry the curry paste in a little oil for 1 minute.",
+      "Add the chicken and cook for 5 minutes.",
+      "Pour in the coconut milk, then add the beans and aubergine.",
+      "Simmer for 15 minutes, stir in the fish sauce and serve with the rice."
+    ]
+  },
+  {
+    "id": "margherita-pizza",
+    "name": "Margherita Pizza",
+    "cuisine": "italian",
+    "mealType": [
+      "dinner"
+    ],
+    "dietary": [
+      "vegetarian"
+    ],
+    "tags": [],
+    "serves": 2,
+    "ingredients": [
+      {
+        "item": "pizza base",
+        "quantity": 2,
+        "unit": null
+      },
+      {
+        "item": "passata",
+        "quantity": 150,
+        "unit": "ml"
+      },
+      {
+        "item": "mozzarella",
+        "quantity": 1,
+        "unit": "ball",
+        "prep": "torn"
+      },
+      {
+        "item": "fresh basil",
+        "quantity": 1,
+        "unit": "handful"
+      },
+      {
+        "item": "olive oil",
+        "quantity": 1,
+        "unit": "tbsp"
+      }
+    ],
+    "method": [
+      "Heat the oven to 220C.",
+      "Spread the passata over the bases.",
+      "Scatter over the mozzarella.",
+      "Bake for 10 to 12 minutes, then top with the basil and a drizzle of oil."
+    ]
+  },
+  {
+    "id": "lentil-dahl",
+    "name": "Lentil Dahl",
+    "cuisine": "indian",
+    "mealType": [
+      "dinner"
+    ],
+    "dietary": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "dairy-free"
+    ],
+    "tags": [
+      "batch-cook"
+    ],
+    "serves": 4,
+    "ingredients": [
+      {
+        "item": "red lentils",
+        "quantity": 250,
+        "unit": "g"
+      },
+      {
+        "item": "onion",
+        "quantity": 1,
+        "unit": null,
+        "prep": "chopped"
+      },
+      {
+        "item": "garlic",
+        "quantity": 2,
+        "unit": "clove",
+        "prep": "crushed"
+      },
+      {
+        "item": "ginger",
+        "quantity": 1,
+        "unit": "thumb",
+        "prep": "grated"
+      },
+      {
+        "item": "chopped tomatoes",
+        "quantity": 1,
+        "unit": "tin"
+      },
+      {
+        "item": "curry powder",
+        "quantity": 2,
+        "unit": "tbsp"
+      },
+      {
+        "item": "coconut milk",
+        "quantity": 200,
+        "unit": "ml"
+      },
+      {
+        "item": "rice",
+        "quantity": 300,
+        "unit": "g"
+      }
+    ],
+    "method": [
+      "Soften the onion, garlic and ginger in a little oil for 5 minutes.",
+      "Stir in the curry powder and cook for 1 minute.",
+      "Add the lentils, tomatoes and 500ml water, then simmer for 20 minutes.",
+      "Stir in the coconut milk, warm through and serve with the rice."
+    ]
+  },
+  {
+    "id": "sausage-and-mash",
+    "name": "Sausage and Mash",
+    "cuisine": "british",
+    "mealType": [
+      "dinner"
+    ],
+    "dietary": [],
+    "tags": [
+      "kid-friendly"
+    ],
+    "serves": 4,
+    "ingredients": [
+      {
+        "item": "pork sausages",
+        "quantity": 8,
+        "unit": null
+      },
+      {
+        "item": "potatoes",
+        "quantity": 900,
+        "unit": "g",
+        "prep": "peeled and chopped"
+      },
+      {
+        "item": "butter",
+        "quantity": 40,
+        "unit": "g"
+      },
+      {
+        "item": "milk",
+        "quantity": 50,
+        "unit": "ml"
+      },
+      {
+        "item": "onion",
+        "quantity": 1,
+        "unit": null,
+        "prep": "sliced"
+      },
+      {
+        "item": "gravy granules",
+        "quantity": 2,
+        "unit": "tbsp"
+      }
+    ],
+    "method": [
+      "Heat the oven to 200C and roast the sausages for 25 to 30 minutes.",
+      "Boil the potatoes until soft, then mash with the butter and milk.",
+      "Fry the onion slowly until soft and golden.",
+      "Make the gravy with the granules and 300ml boiling water. Serve together."
+    ]
+  },
+  {
+    "id": "sticky-toffee-pudding",
+    "name": "Sticky Toffee Pudding",
+    "cuisine": "british",
+    "mealType": [
+      "dessert"
+    ],
+    "dietary": [
+      "vegetarian"
+    ],
+    "tags": [],
+    "serves": 6,
+    "ingredients": [
+      {
+        "item": "pitted dates",
+        "quantity": 200,
+        "unit": "g",
+        "prep": "chopped"
+      },
+      {
+        "item": "self-raising flour",
+        "quantity": 200,
+        "unit": "g"
+      },
+      {
+        "item": "butter",
+        "quantity": 100,
+        "unit": "g",
+        "prep": "softened"
+      },
+      {
+        "item": "dark brown sugar",
+        "quantity": 150,
+        "unit": "g"
+      },
+      {
+        "item": "eggs",
+        "quantity": 2,
+        "unit": null
+      },
+      {
+        "item": "bicarbonate of soda",
+        "quantity": 1,
+        "unit": "tsp"
+      },
+      {
+        "item": "double cream",
+        "quantity": 150,
+        "unit": "ml"
+      }
+    ],
+    "method": [
+      "Heat the oven to 180C. Pour 250ml boiling water over the dates with the bicarbonate of soda and leave for 10 minutes.",
+      "Beat the butter and sugar, then beat in the eggs.",
+      "Fold in the flour, then stir in the dates and their liquid.",
+      "Pour into a greased dish and bake for 30 to 35 minutes.",
+      "Warm the cream and pour over to serve."
+    ]
+  },
+  {
+    "id": "apple-crumble",
+    "name": "Apple Crumble",
+    "cuisine": "british",
+    "mealType": [
+      "dessert"
+    ],
+    "dietary": [
+      "vegetarian"
+    ],
+    "tags": [
+      "batch-cook"
+    ],
+    "serves": 6,
+    "ingredients": [
+      {
+        "item": "apples",
+        "quantity": 6,
+        "unit": null,
+        "prep": "peeled and sliced"
+      },
+      {
+        "item": "plain flour",
+        "quantity": 150,
+        "unit": "g"
+      },
+      {
+        "item": "butter",
+        "quantity": 100,
+        "unit": "g",
+        "prep": "cold and cubed"
+      },
+      {
+        "item": "sugar",
+        "quantity": 100,
+        "unit": "g"
+      },
+      {
+        "item": "rolled oats",
+        "quantity": 50,
+        "unit": "g"
+      },
+      {
+        "item": "cinnamon",
+        "quantity": 1,
+        "unit": "tsp"
+      }
+    ],
+    "method": [
+      "Heat the oven to 190C. Put the apples in a dish with half the sugar and the cinnamon.",
+      "Rub the butter into the flour until it looks like breadcrumbs.",
+      "Stir in the oats and the rest of the sugar.",
+      "Scatter the crumble over the apples and bake for 35 to 40 minutes until golden."
+    ]
+  }
+]

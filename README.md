@@ -56,4 +56,4 @@ npm run preview -- --host   # open the "Network" URL on your phone
 
 ## Data
 
-SQLite database. Starter recipes from `Project Nosh - Candidate_Pack.json` will be seeded on first run (not yet implemented).
+SQLite database. The 20 starter recipes in `backend/data/project-nosh-sample-recipes.json` (provided with the brief, never modified) will be seeded on first run (not yet implemented).
