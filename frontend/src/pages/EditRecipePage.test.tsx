@@ -89,7 +89,7 @@ describe('EditRecipePage', () => {
       mealTypes: ['dinner'],
       dietary: ['vegan'],
       tags: ['Low cost'],
-      ingredients: [{ item: 'carrot', quantity: 400, unit: 'g', prep: 'sliced' }],
+      ingredients: [{ ingredientId: 1, quantity: 400, unit: 'g', prep: 'sliced' }], // saved lines keep their ingredient by id
       method: ['Fry the carrots.'],
     })
     expect(await screen.findByText('at /recipes/nans-winter-stew')).toBeInTheDocument()

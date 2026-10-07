@@ -88,6 +88,11 @@ let nextId = 1
 const fakeUuid = () => `00000000-0000-4000-8000-${String(nextId++).padStart(12, '0')}`
 
 const ingredientIds = new Map<string, number>()
+// Rough stand-in for the backend merge key: lowercase, single spaces, trailing "s" dropped.
+const mockKey = (name: string) => name.trim().toLowerCase().replace(/\s+/g, ' ').replace(/s$/, '')
+const ingredientName = (id: number) => [...ingredientIds.entries()].find(([, v]) => v === id)?.[0]
+const lineName = (line: { ingredientId?: number | null; item?: string }) =>
+  (line.ingredientId != null ? ingredientName(line.ingredientId) : undefined) ?? (line.item ?? '').trim()
 const ingredientId = (name: string) => {
   const key = name.trim().toLowerCase()
   if (!ingredientIds.has(key)) ingredientIds.set(key, ingredientIds.size + 1)
@@ -151,7 +156,7 @@ function validate(input: RecipeInput, ignoreSlug?: string): FieldErrors {
     errors.name = `There's already a recipe called ${name}.`
   if (!(input.serves >= 1)) errors.serves = 'Serves must be at least 1'
   if (!input.mealTypes.length) errors.mealTypes = 'Pick at least one meal type'
-  if (!input.ingredients.some((i) => i.item.trim())) errors.ingredients = 'Add at least one ingredient'
+  if (!input.ingredients.some((i) => lineName(i))) errors.ingredients = 'Add at least one ingredient'
   if (!input.method.some((s) => s.trim())) errors.method = 'Add at least one step'
   return errors
 }
@@ -165,7 +170,7 @@ function fromInput(slug: string, input: RecipeInput, id?: string): RecipeDetail 
     mealType: input.mealTypes,
     dietary: input.dietary ?? [],
     tags: (input.tags ?? []).map((t) => tagFor(t).key),
-    ingredients: input.ingredients.filter((i) => i.item.trim()).map((i) => ({ item: i.item.trim(), quantity: i.quantity ?? null, unit: i.unit ?? null, prep: i.prep ?? undefined })),
+    ingredients: input.ingredients.filter((i) => lineName(i)).map((i) => ({ item: lineName(i), quantity: i.quantity ?? null, unit: i.unit ?? null, prep: i.prep ?? undefined })),
     method: input.method.filter((s) => s.trim()),
   }
   return toDetail(json, true, id)
@@ -293,6 +298,12 @@ export const mockApi: Api = {
   },
   listTags: () => delay([...tags.values()]),
   createTag: (name) => delay(tagFor(name)),
+  createIngredient: (name) => {
+    const tidy = name.trim().replace(/\s+/g, ' ')
+    const existing = [...ingredientIds.entries()].find(([n]) => mockKey(n) === mockKey(tidy))
+    if (existing) return delay({ id: existing[1], name: existing[0], created: false })
+    return delay({ id: ingredientId(tidy), name: tidy.toLowerCase(), created: true })
+  },
 
   getPreferences: () => delay(preferences),
   updatePreferences: (p) => delay((preferences = { dietary: p.dietary ?? [] })),

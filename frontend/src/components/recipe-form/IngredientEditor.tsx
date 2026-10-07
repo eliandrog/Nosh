@@ -1,32 +1,11 @@
-import { useEffect, useId, useState } from 'react'
-import { api } from '../../api/endpoints'
+import { useId } from 'react'
 import type { FieldErrors, Unit } from '../../api/types'
-import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { CloseIcon, PlusIcon } from '../icons'
 import { FieldError } from './FormMessages'
+import { IngredientCombobox } from './IngredientCombobox'
 import type { IngredientRow } from './recipeForm'
 
 const GROUP_LABELS: Record<string, string> = { weight: 'Weight', volume: 'Volume', count: 'Count', pack: 'Packs & pieces' }
-
-/** Type-ahead suggestions from GET /api/ingredients, fetched once typing pauses. */
-function useIngredientSuggestions(text: string): string[] {
-  const q = useDebouncedValue(text.trim(), 250)
-  const [results, setResults] = useState<{ q: string; names: string[] }>({ q: '', names: [] })
-
-  useEffect(() => {
-    if (q.length < 2) return
-    let cancelled = false
-    api
-      .searchIngredients(q)
-      .then((found) => !cancelled && setResults({ q, names: found.map((s) => s.name) }))
-      .catch(() => undefined) // suggestions are optional; typing still works
-    return () => {
-      cancelled = true
-    }
-  }, [q])
-
-  return results.q === q ? results.names : []
-}
 
 type RowProps = {
   row: IngredientRow
@@ -41,7 +20,6 @@ type RowProps = {
 function IngredientRowEditor({ row, index, units, errors, canRemove, onChange, onRemove }: RowProps) {
   const id = useId()
   const n = index + 1
-  const suggestions = useIngredientSuggestions(row.item)
   const err = (field: string) => errors[`ingredients.${index}.${field}`]
   const groups = [...new Set(units.map((u) => u.group))]
 
@@ -78,22 +56,13 @@ function IngredientRowEditor({ row, index, units, errors, canRemove, onChange, o
             </optgroup>
           ))}
         </select>
-        <label htmlFor={`${id}-item`} className="visually-hidden">{`Ingredient ${n}`}</label>
-        <input
+        <IngredientCombobox
           id={`${id}-item`}
-          className="text-input ingredient-card__item"
-          placeholder="Ingredient"
-          list={`${id}-suggestions`}
-          autoComplete="off"
-          value={row.item}
-          aria-invalid={Boolean(err('item'))}
-          onChange={(e) => onChange({ ...row, item: e.target.value })}
+          label={`Ingredient ${n}`}
+          value={{ ingredientId: row.ingredientId, item: row.item }}
+          invalid={Boolean(err('item') || err('ingredientId'))}
+          onChange={(v) => onChange({ ...row, ...v })}
         />
-        <datalist id={`${id}-suggestions`}>
-          {suggestions.map((name) => (
-            <option key={name} value={name} />
-          ))}
-        </datalist>
         {canRemove && (
           <button type="button" className="ingredient-card__remove" aria-label={`Remove ingredient ${n}`} onClick={onRemove}>
             <CloseIcon size={18} />
@@ -108,7 +77,7 @@ function IngredientRowEditor({ row, index, units, errors, canRemove, onChange, o
         value={row.prep}
         onChange={(e) => onChange({ ...row, prep: e.target.value })}
       />
-      {(['quantity', 'unit', 'item', 'prep'] as const).map((field) => (
+      {(['quantity', 'unit', 'item', 'ingredientId', 'prep'] as const).map((field) => (
         <FieldError key={field} id={`${id}-${field}-error`} message={err(field)} />
       ))}
     </li>
