@@ -283,42 +283,17 @@ export interface components {
          * @enum {string}
          */
         MealType: "breakfast" | "lunch" | "dinner" | "dessert";
-        /** OptionsOut */
+        /**
+         * OptionsOut
+         * @description GET /api/options: the fixed lists, typed as enums so clients get exact values.
+         */
         OptionsOut: {
-            /**
-             * Cuisines
-             * @default [
-             *       "british",
-             *       "chinese",
-             *       "indian",
-             *       "italian",
-             *       "mediterranean",
-             *       "mexican",
-             *       "thai",
-             *       "other"
-             *     ]
-             */
-            cuisines: string[];
-            /**
-             * Dietarylabels
-             * @default [
-             *       "vegetarian",
-             *       "vegan",
-             *       "gluten-free",
-             *       "dairy-free"
-             *     ]
-             */
-            dietaryLabels: string[];
-            /**
-             * Mealtypes
-             * @default [
-             *       "breakfast",
-             *       "lunch",
-             *       "dinner",
-             *       "dessert"
-             *     ]
-             */
-            mealTypes: string[];
+            /** Cuisines */
+            cuisines: components["schemas"]["Cuisine"][];
+            /** Dietarylabels */
+            dietaryLabels: components["schemas"]["DietaryLabel"][];
+            /** Mealtypes */
+            mealTypes: components["schemas"]["MealType"][];
         };
         /** PlanDayOut */
         PlanDayOut: {
