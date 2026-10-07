@@ -7,9 +7,10 @@ from sqlalchemy import CheckConstraint, Column, UniqueConstraint
 from sqlalchemy import Enum as SAEnum
 from sqlmodel import Field, Relationship, SQLModel
 
-from app.constants import UNITS, Cuisine, DietaryLabel, MealType
+from app.constants import SHOPPING_UNITS, UNITS, Cuisine, DietaryLabel, MealType
 
 _UNIT_KEYS_SQL = ", ".join(f"'{u.key}'" for u in UNITS if u.key is not None)
+_SHOPPING_UNITS_SQL = ", ".join(f"'{u}'" for u in SHOPPING_UNITS)
 
 
 def _enum_column(enum: type, name: str, primary_key: bool = False) -> Column:
@@ -160,6 +161,7 @@ class ShoppingListItem(SQLModel, table=True):
         CheckConstraint("quantity IS NULL OR quantity > 0", name="ck_shopping_list_item_quantity"),
         # A line always has an amount, or is "to taste", or both ("5 ml + to taste").
         CheckConstraint("quantity IS NOT NULL OR to_taste = 1", name="ck_shopping_list_item_amount_or_to_taste"),
+        CheckConstraint(f"unit IN ({_SHOPPING_UNITS_SQL})", name="ck_shopping_list_item_unit"),
     )
 
     id: int | None = Field(default=None, primary_key=True)
