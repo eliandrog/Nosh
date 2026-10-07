@@ -42,12 +42,10 @@ def test_week_runs_monday_to_sunday_from_any_date_with_meals_in_order(client: Te
         "id": None,
         "date": WED.isoformat(),
         "position": 2,
-        "kind": "recipe",
         "recipeId": recipe_id(client, "lentil-dahl"),
         "recipeSlug": "lentil-dahl",
         "recipeName": "Lentil Dahl",
         "recipeDeleted": False,
-        "placeMeal": None,
         "servings": 2,
     }
 

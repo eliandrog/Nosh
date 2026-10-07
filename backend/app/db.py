@@ -30,12 +30,10 @@ def get_session() -> Iterator[Session]:
 
 
 def init_db(eng: Engine | None = None) -> None:
-    """Create tables and seed the starter recipes and demo places if they're empty."""
+    """Create tables and seed the starter recipes if the database is empty."""
     from app.seed import seed_recipes
-    from app.seed_places import seed_places
 
     eng = eng or engine
     SQLModel.metadata.create_all(eng)
     with Session(eng) as session:
         seed_recipes(session)
-        seed_places(session)

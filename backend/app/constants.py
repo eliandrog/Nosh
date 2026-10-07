@@ -72,19 +72,6 @@ class Cuisine(StrEnum):
 
 CUISINES: tuple[str, ...] = tuple(c.value for c in Cuisine)
 
-
-class PlaceType(StrEnum):
-    """Kinds of place that share free meals (Free meals nearby)."""
-
-    COMMUNITY_KITCHEN = "community_kitchen"
-    CAFE = "cafe"
-    FOOD_HUB = "food_hub"
-
-
-class PlaceMealKind(StrEnum):
-    HOT = "hot"  # a meal eaten there or taken away
-    PARCEL = "parcel"  # a food parcel to cook at home
-
 # ASSUMPTION (5): default recipe images are an emoji per first meal type for now;
 # outline icons can replace these later without an API change.
 DEFAULT_MEAL_EMOJI: dict[str, str] = {

@@ -6,12 +6,11 @@ Errors use app.core.errors.ErrorResponse: {"error": {code, message, details?, re
 
 import datetime as dt
 import uuid
-from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
-from app.constants import Cuisine, DietaryLabel, MealType, PlaceMealKind, PlaceType
+from app.constants import Cuisine, DietaryLabel, MealType
 
 
 class ApiModel(BaseModel):
@@ -161,30 +160,14 @@ class ProfileIn(ApiModel):
 # ---------- Week plan ----------
 
 
-class PlanPlaceMealOut(ApiModel):
-    """A free meal from a place, as shown in the week plan."""
-
-    id: int
-    name: str
-    kind: PlaceMealKind
-    place_id: int
-    place_name: str
-    start_time: dt.time
-    end_time: dt.time
-
-
 class PlanEntryOut(ApiModel):
-    """A planned meal: either a recipe (kind "recipe") or a free meal from a place (kind "free_meal")."""
-
     id: int
     date: dt.date
     position: int  # order within the day
-    kind: Literal["recipe", "free_meal"] = "recipe"
-    recipe_id: uuid.UUID | None
-    recipe_slug: str | None
-    recipe_name: str | None
-    recipe_deleted: bool  # past meals can show "(deleted)"; always false for free meals
-    place_meal: PlanPlaceMealOut | None = None
+    recipe_id: uuid.UUID
+    recipe_slug: str
+    recipe_name: str
+    recipe_deleted: bool  # past meals can show "(deleted)"
     servings: int
 
 
@@ -201,20 +184,11 @@ class WeekPlanOut(ApiModel):
 
 
 class PlanEntryCreate(ApiModel):
-    """POST /api/plan/entries. The meal goes last on that day.
-
-    Give exactly one of recipeId or placeMealId. A place meal can only go on its weekday."""
+    """POST /api/plan/entries. The meal goes last on that day."""
 
     date: dt.date
-    recipe_id: uuid.UUID | None = None
-    place_meal_id: int | None = Field(default=None, ge=1)
+    recipe_id: uuid.UUID
     servings: int = Field(ge=1)
-
-    @model_validator(mode="after")
-    def _recipe_or_place_meal(self) -> "PlanEntryCreate":
-        if (self.recipe_id is None) == (self.place_meal_id is None):
-            raise ValueError("Give either recipeId or placeMealId, not both.")
-        return self
 
 
 class PlanEntryUpdate(ApiModel):
@@ -267,36 +241,6 @@ class ShoppingTickIn(ApiModel):
     ticked: bool
 
 
-# ---------- Free meals nearby ----------
-
-
-class PlaceMealOut(ApiModel):
-    id: int
-    name: str
-    kind: PlaceMealKind
-    weekday: int  # 0 = Monday ... 6 = Sunday; repeats every week
-    start_time: dt.time
-    end_time: dt.time
-    serves: int  # people one portion/parcel feeds
-    serves_note: str | None
-    dietary: list[DietaryLabel]
-    open_today: bool  # served on today's weekday (the user's local date)
-
-
-class PlaceOut(ApiModel):
-    """GET /api/places (nearby, sorted by distance) and GET /api/places/{id}."""
-
-    id: int
-    name: str
-    type: PlaceType
-    postcode: str
-    latitude: float
-    longitude: float
-    is_demo: bool  # seeded demo data: fictional name, real postcode
-    distance_km: float | None  # from the searched point; None when not searching by location
-    meals: list[PlaceMealOut]
-
-
 # Published in the OpenAPI spec (components.schemas) even before their endpoints exist,
 # so the frontend can generate its TypeScript types from one source of truth.
 CONTRACT_MODELS: tuple[type[BaseModel], ...] = (
@@ -318,7 +262,6 @@ CONTRACT_MODELS: tuple[type[BaseModel], ...] = (
     PreferencesIn,
     ProfileOut,
     ProfileIn,
-    PlanPlaceMealOut,
     PlanEntryOut,
     PlanDayOut,
     WeekPlanOut,
@@ -329,6 +272,4 @@ CONTRACT_MODELS: tuple[type[BaseModel], ...] = (
     ShoppingListChangesOut,
     ShoppingListOut,
     ShoppingTickIn,
-    PlaceMealOut,
-    PlaceOut,
 )
