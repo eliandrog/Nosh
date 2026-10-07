@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useSearchParams } from 'react-router'
+import { useSearchParams } from 'react-router'
 import { errorMessage } from '../api/client'
 import { api } from '../api/endpoints'
 import type { PlanEntry, WeekPlan } from '../api/types'
@@ -63,13 +63,6 @@ export function WeekPage() {
         subtitle={planned ? `${planned} ${planned === 1 ? 'meal' : 'meals'} planned. Tap a meal to change it.` : 'Add as many meals a day as suits you.'}
       />
       <WeekNavigator monday={monday} onChange={goToWeek} />
-      <Link to="/free-meals" className="free-meals-card">
-        <span>
-          Free meals near you
-          <span className="free-meals-card__sub">Meals shared by local community places</span>
-        </span>
-        <span aria-hidden="true">→</span>
-      </Link>
       {actionError && (
         <p className="week__error" role="alert">
           {actionError}

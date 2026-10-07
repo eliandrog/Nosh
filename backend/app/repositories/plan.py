@@ -6,7 +6,7 @@ import uuid
 from sqlalchemy.orm import selectinload
 from sqlmodel import Session, col, delete, func, select
 
-from app.models import PlaceMeal, PlanEntry, Recipe, RecipeIngredient
+from app.models import PlanEntry, Recipe, RecipeIngredient
 
 
 def list_between(session: Session, start: dt.date, end: dt.date) -> list[PlanEntry]:
@@ -14,7 +14,7 @@ def list_between(session: Session, start: dt.date, end: dt.date) -> list[PlanEnt
     stmt = (
         select(PlanEntry)
         .where(col(PlanEntry.date) >= start, col(PlanEntry.date) <= end)
-        .options(selectinload(PlanEntry.recipe), selectinload(PlanEntry.place_meal).selectinload(PlaceMeal.place))
+        .options(selectinload(PlanEntry.recipe))
         .order_by(PlanEntry.date, PlanEntry.position)
     )
     return list(session.exec(stmt))
