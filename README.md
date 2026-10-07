@@ -35,10 +35,13 @@ The API contract is the OpenAPI spec (`/api/openapi.json`), exported to `backend
 uv run python -m app.export_openapi
 ```
 
+**Endpoints so far** (all under `/api`; full docs at `/api/docs`): recipes (list with search and filters, detail with `?servings=` scaling, create, update, delete, usage), reference data (options, units, tags, ingredient suggestions), preferences and profile, health.
+
 Run tests:
 
 ```bash
-uv run pytest
+uv run pytest             # everything
+uv run pytest tests/unit  # fast unit tests only (no database)
 ```
 
 ### Frontend (React + Vite)

@@ -25,8 +25,17 @@ def _uses(mods: set[str], *prefixes: str) -> set[str]:
 
 
 def test_routers_do_not_touch_the_database():
+    # deps.py is the single place that wires the DB session into routers (dependency injection).
     for name, mods in _imports("api").items():
+        if name == "deps.py":
+            continue
         assert not _uses(mods, "app.repositories", "app.models", "app.db", "sqlmodel", "sqlalchemy"), name
+
+
+def test_only_repositories_build_queries():
+    for folder in ("api", "services"):
+        for name, mods in _imports(folder).items():
+            assert not _uses(mods, "sqlmodel.select", "sqlmodel.delete", "sqlmodel.exists", "sqlalchemy.orm"), f"{folder}/{name}"
 
 
 def test_services_do_not_know_about_http():

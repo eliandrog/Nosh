@@ -9,7 +9,7 @@ from sqlmodel import Session
 from app.core.errors import ValidationFailed
 from app.models import Tag
 from app.repositories import tags as tag_repo
-from app.services.recipes import slugify
+from app.services.slugs import slugify
 
 
 def tag_key(name: str) -> str:

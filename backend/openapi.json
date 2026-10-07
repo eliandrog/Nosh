@@ -43,7 +43,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Details"
           },
           "message": {
@@ -94,7 +93,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Prep"
           },
           "quantity": {
@@ -145,20 +143,18 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Prep"
           },
           "quantity": {
             "anyOf": [
               {
-                "exclusiveMinimum": 0,
+                "exclusiveMinimum": 0.0,
                 "type": "number"
               },
               {
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Quantity"
           },
           "unit": {
@@ -170,7 +166,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Unit"
           }
         },
@@ -483,20 +478,18 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Email"
           },
           "householdSize": {
             "anyOf": [
               {
-                "minimum": 1,
+                "minimum": 1.0,
                 "type": "integer"
               },
               {
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Householdsize"
           },
           "name": {
@@ -509,7 +502,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Name"
           }
         },
@@ -604,7 +596,7 @@
             "type": "string"
           },
           "serves": {
-            "minimum": 1,
+            "minimum": 1.0,
             "title": "Serves",
             "type": "integer"
           },
@@ -1047,6 +1039,7 @@
     }
   },
   "info": {
+    "description": "Meal planning for households on a tight budget. Errors always use the `ErrorResponse` object.",
     "title": "Nosh API",
     "version": "0.1.0"
   },
@@ -1054,7 +1047,7 @@
   "paths": {
     "/api/health": {
       "get": {
-        "operationId": "health_api_health_get",
+        "operationId": "health",
         "responses": {
           "200": {
             "content": {
@@ -1063,7 +1056,7 @@
                   "additionalProperties": {
                     "type": "string"
                   },
-                  "title": "Response Health Api Health Get",
+                  "title": "Response Health",
                   "type": "object"
                 }
               }
@@ -1071,11 +1064,805 @@
             "description": "Successful Response"
           }
         },
-        "summary": "Health",
+        "summary": "Health check",
         "tags": [
-          "health"
+          "Health"
+        ]
+      }
+    },
+    "/api/ingredients": {
+      "get": {
+        "description": "Type-ahead for the recipe form: names starting with the text first, then names containing it.",
+        "operationId": "suggest_ingredients",
+        "parameters": [
+          {
+            "description": "Text typed so far",
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "description": "Text typed so far",
+              "maxLength": 60,
+              "minLength": 1,
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 10,
+              "maximum": 20,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/IngredientSuggestion"
+                  },
+                  "title": "Response Suggest Ingredients",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error: `details.fields` maps each field to a message"
+          }
+        },
+        "summary": "Suggest ingredient names",
+        "tags": [
+          "Reference data"
+        ]
+      }
+    },
+    "/api/options": {
+      "get": {
+        "operationId": "get_options",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OptionsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Fixed lists for forms and filters",
+        "tags": [
+          "Reference data"
+        ]
+      }
+    },
+    "/api/preferences": {
+      "get": {
+        "operationId": "get_preferences",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreferencesOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get dietary preferences",
+        "tags": [
+          "Preferences & profile"
+        ]
+      },
+      "put": {
+        "description": "Replaces the saved dietary labels. The recipe list filters by these by default.",
+        "operationId": "update_preferences",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreferencesIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreferencesOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error: `details.fields` maps each field to a message"
+          }
+        },
+        "summary": "Set dietary preferences",
+        "tags": [
+          "Preferences & profile"
+        ]
+      }
+    },
+    "/api/profile": {
+      "get": {
+        "operationId": "get_profile",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get profile",
+        "tags": [
+          "Preferences & profile"
+        ]
+      },
+      "put": {
+        "description": "Name, email and household size (the default servings when adding a meal). Profile only, no login.",
+        "operationId": "update_profile",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error: `details.fields` maps each field to a message"
+          }
+        },
+        "summary": "Update profile",
+        "tags": [
+          "Preferences & profile"
+        ]
+      }
+    },
+    "/api/recipes": {
+      "get": {
+        "description": "Search and filter recipes. Dietary filter defaults to the saved preferences unless `dietary` is given or `all=true`. Dietary labels must **all** match (vegetarian also accepts vegan); meal types and tags match **any**. Search covers recipe names and ingredients.",
+        "operationId": "list_recipes",
+        "parameters": [
+          {
+            "description": "Search text (name or ingredient)",
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search text (name or ingredient)",
+              "title": "Q"
+            }
+          },
+          {
+            "description": "Comma-separated, e.g. `lunch,dinner`",
+            "in": "query",
+            "name": "mealType",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Comma-separated, e.g. `lunch,dinner`",
+              "title": "Mealtype"
+            }
+          },
+          {
+            "description": "Comma-separated, e.g. `vegetarian,gluten-free`",
+            "in": "query",
+            "name": "dietary",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Comma-separated, e.g. `vegetarian,gluten-free`",
+              "title": "Dietary"
+            }
+          },
+          {
+            "description": "Comma-separated tag keys, e.g. `quick,low-cost`",
+            "in": "query",
+            "name": "tag",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Comma-separated tag keys, e.g. `quick,low-cost`",
+              "title": "Tag"
+            }
+          },
+          {
+            "description": "Ignore saved dietary preferences",
+            "in": "query",
+            "name": "all",
+            "required": false,
+            "schema": {
+              "default": false,
+              "description": "Ignore saved dietary preferences",
+              "title": "All",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RecipeSummary"
+                  },
+                  "title": "Response List Recipes",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error: `details.fields` maps each field to a message"
+          }
+        },
+        "summary": "List recipes",
+        "tags": [
+          "Recipes"
+        ]
+      },
+      "post": {
+        "description": "Adds a custom recipe. Unknown tag names are created. The slug is made from the name.",
+        "operationId": "create_recipe",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecipeCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecipeDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict (e.g. a recipe with this name already exists)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error: `details.fields` maps each field to a message"
+          }
+        },
+        "summary": "Create a recipe",
+        "tags": [
+          "Recipes"
+        ]
+      }
+    },
+    "/api/recipes/{slug}": {
+      "delete": {
+        "description": "Soft-deletes a custom recipe: removed from today and future days, kept in past weeks.",
+        "operationId": "delete_recipe",
+        "parameters": [
+          {
+            "description": "Recipe slug, e.g. `lentil-dahl`",
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "description": "Recipe slug, e.g. `lentil-dahl`",
+              "title": "Slug",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user's local date (YYYY-MM-DD). Defaults to the server's local date.",
+            "in": "query",
+            "name": "today",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The user's local date (YYYY-MM-DD). Defaults to the server's local date.",
+              "title": "Today"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not allowed (e.g. editing a built-in recipe)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error: `details.fields` maps each field to a message"
+          }
+        },
+        "summary": "Delete a recipe",
+        "tags": [
+          "Recipes"
+        ]
+      },
+      "get": {
+        "description": "Full recipe. Pass `servings` to scale ingredient amounts.",
+        "operationId": "get_recipe",
+        "parameters": [
+          {
+            "description": "Recipe slug, e.g. `lentil-dahl`",
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "description": "Recipe slug, e.g. `lentil-dahl`",
+              "title": "Slug",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Scale amounts to this many servings",
+            "in": "query",
+            "name": "servings",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 50,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Scale amounts to this many servings",
+              "title": "Servings"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecipeDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error: `details.fields` maps each field to a message"
+          }
+        },
+        "summary": "Get a recipe",
+        "tags": [
+          "Recipes"
+        ]
+      },
+      "put": {
+        "description": "Replaces a custom recipe. Built-in recipes are read-only. Renaming updates the slug.",
+        "operationId": "update_recipe",
+        "parameters": [
+          {
+            "description": "Recipe slug, e.g. `lentil-dahl`",
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "description": "Recipe slug, e.g. `lentil-dahl`",
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecipeCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecipeDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not allowed (e.g. editing a built-in recipe)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict (e.g. a recipe with this name already exists)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error: `details.fields` maps each field to a message"
+          }
+        },
+        "summary": "Update a recipe",
+        "tags": [
+          "Recipes"
+        ]
+      }
+    },
+    "/api/recipes/{slug}/usage": {
+      "get": {
+        "description": "Used by the delete confirmation: how many meals from today onwards use this recipe.",
+        "operationId": "recipe_usage",
+        "parameters": [
+          {
+            "description": "Recipe slug, e.g. `lentil-dahl`",
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "description": "Recipe slug, e.g. `lentil-dahl`",
+              "title": "Slug",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user's local date (YYYY-MM-DD). Defaults to the server's local date.",
+            "in": "query",
+            "name": "today",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The user's local date (YYYY-MM-DD). Defaults to the server's local date.",
+              "title": "Today"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecipeUsageOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error: `details.fields` maps each field to a message"
+          }
+        },
+        "summary": "Count upcoming planned meals",
+        "tags": [
+          "Recipes"
+        ]
+      }
+    },
+    "/api/tags": {
+      "get": {
+        "operationId": "list_tags",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TagOut"
+                  },
+                  "title": "Response List Tags",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List tags",
+        "tags": [
+          "Reference data"
+        ]
+      },
+      "post": {
+        "description": "Returns the existing tag if one with the same key already exists (e.g. `Low cost` / `low-cost`).",
+        "operationId": "create_tag",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TagIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error: `details.fields` maps each field to a message"
+          }
+        },
+        "summary": "Create a tag",
+        "tags": [
+          "Reference data"
+        ]
+      }
+    },
+    "/api/units": {
+      "get": {
+        "operationId": "list_units",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/UnitOut"
+                  },
+                  "title": "Response List Units",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Units for the ingredient unit dropdown",
+        "tags": [
+          "Reference data"
         ]
       }
     }
-  }
+  },
+  "tags": [
+    {
+      "description": "Browse, search, filter, create, edit and delete recipes.",
+      "name": "Recipes"
+    },
+    {
+      "description": "Fixed lists, units, tags and ingredient suggestions for forms and filters.",
+      "name": "Reference data"
+    },
+    {
+      "description": "The user's dietary preferences and profile (single user, no login).",
+      "name": "Preferences & profile"
+    },
+    {
+      "description": "Service health check.",
+      "name": "Health"
+    }
+  ]
 }

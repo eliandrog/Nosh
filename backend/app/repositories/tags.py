@@ -13,3 +13,7 @@ def add(session: Session, key: str, name: str, *, is_builtin: bool = False) -> T
     tag = Tag(key=key, name=name, is_builtin=is_builtin)
     session.add(tag)
     return tag
+
+
+def list_all(session: Session) -> list[Tag]:
+    return list(session.exec(select(Tag).order_by(Tag.name)))

@@ -13,7 +13,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
-from app.api import api_router
+from app.api import OPENAPI_TAGS, api_router
 from app.core.config import settings
 from app.core.errors import register_exception_handlers
 from app.core.logging import configure_logging
@@ -33,7 +33,12 @@ def create_app() -> FastAPI:
 
     app = FastAPI(
         title="Nosh API",
+        description="Meal planning for households on a tight budget. Errors always use the `ErrorResponse` object.",
+        version="0.1.0",
         lifespan=lifespan,
+        openapi_tags=OPENAPI_TAGS,
+        # Clean operation ids (e.g. "list_recipes") for the generated frontend client.
+        generate_unique_id_function=lambda route: route.name,
         # Served under /api so the Vite dev proxy exposes them on :5173 too.
         docs_url="/api/docs",
         redoc_url="/api/redoc",

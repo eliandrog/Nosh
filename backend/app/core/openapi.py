@@ -23,7 +23,13 @@ def _mode(model: type[BaseModel]) -> str:
 
 
 def build_openapi(app: FastAPI) -> dict[str, Any]:
-    spec = get_openapi(title=app.title, version=app.version, routes=app.routes)
+    spec = get_openapi(
+        title=app.title,
+        version=app.version,
+        description=app.description,
+        routes=app.routes,
+        tags=app.openapi_tags,
+    )
     models = [*CONTRACT_MODELS, ErrorResponse]
     _, top = models_json_schema(
         [(m, _mode(m)) for m in models], by_alias=True, ref_template="#/components/schemas/{model}"
@@ -31,7 +37,22 @@ def build_openapi(app: FastAPI) -> dict[str, Any]:
     schemas = spec.setdefault("components", {}).setdefault("schemas", {})
     for name, schema in sorted(top.get("$defs", {}).items()):
         schemas.setdefault(name, schema)
+    _use_error_object_for_validation(spec)
     return spec
+
+
+def _use_error_object_for_validation(spec: dict[str, Any]) -> None:
+    """Our handlers return ErrorResponse for 422s, not FastAPI's default HTTPValidationError."""
+    error_ref = {"$ref": "#/components/schemas/ErrorResponse"}
+    for operations in spec.get("paths", {}).values():
+        for operation in operations.values():
+            response = operation.get("responses", {}).get("422")
+            if response is not None:
+                response["description"] = "Validation error: `details.fields` maps each field to a message"
+                response["content"] = {"application/json": {"schema": error_ref}}
+    schemas = spec.get("components", {}).get("schemas", {})
+    schemas.pop("HTTPValidationError", None)
+    schemas.pop("ValidationError", None)
 
 
 def install_contract_openapi(app: FastAPI) -> None:

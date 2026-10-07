@@ -14,7 +14,7 @@ def _ingredient(session, key):
 
 
 def test_line_per_ingredient_and_unit(session):
-    coconut = _ingredient(session, "coconut milk")
+    coconut = _ingredient(session, "coconut-milk")
     session.add_all([
         ShoppingListItem(week_start=WEEK, ingredient_id=coconut.id, unit="ml", quantity=200),
         ShoppingListItem(week_start=WEEK, ingredient_id=coconut.id, unit="tin", quantity=1),
@@ -42,7 +42,7 @@ def test_same_line_in_another_week_is_allowed(session):
 
 
 def test_to_taste_line_has_no_quantity(session):
-    salt = _ingredient(session, "salt and pepper")
+    salt = _ingredient(session, "salt-and-pepper")
     item = ShoppingListItem(week_start=WEEK, ingredient_id=salt.id, unit="item", quantity=None, to_taste=True)
     session.add(item)
     session.commit()
@@ -64,7 +64,7 @@ def test_line_must_reference_existing_ingredient(session):
 
 
 def test_amount_plus_to_taste_line(session):
-    salt = _ingredient(session, "salt and pepper")
+    salt = _ingredient(session, "salt-and-pepper")
     item = ShoppingListItem(week_start=WEEK, ingredient_id=salt.id, unit="ml", quantity=5, to_taste=True)
     session.add(item)
     session.commit()
