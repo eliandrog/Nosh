@@ -1,21 +1,35 @@
-import type { ValidationErrors } from './types'
+import type { ErrorBody, FieldErrors } from './types'
 
+/**
+ * Any API error. Mirrors the backend error object:
+ *   { error: { code, message, details?, requestId } }
+ * `message` is safe to show to the user; `requestId` matches the server logs.
+ */
 export class ApiError extends Error {
   readonly status: number
-  constructor(status: number, message: string) {
-    super(message)
+  readonly code: string
+  readonly requestId: string | null
+  readonly details: Record<string, unknown> | null
+
+  constructor(status: number, body: Partial<ErrorBody>) {
+    super(body.message || 'Something went wrong. Please try again.')
     this.name = 'ApiError'
     this.status = status
+    this.code = body.code || 'unknown_error'
+    this.requestId = body.requestId ?? null
+    this.details = body.details ?? null
   }
 }
 
-/** 422 response with per-field messages, ready to show next to form fields. */
+/** 422 with per-field messages, ready to show next to form fields. */
 export class ValidationError extends ApiError {
-  readonly errors: ValidationErrors
-  constructor(errors: ValidationErrors) {
-    super(422, 'Validation failed')
+  readonly fields: FieldErrors
+
+  constructor(status: number, body: Partial<ErrorBody>) {
+    super(status, body)
     this.name = 'ValidationError'
-    this.errors = errors
+    const fields = (body.details as { fields?: FieldErrors } | null | undefined)?.fields
+    this.fields = fields ?? {}
   }
 }
 
@@ -25,6 +39,13 @@ export class NetworkError extends Error {
     super("Can't reach the server")
     this.name = 'NetworkError'
   }
+}
+
+/** User-facing text for any error, with a reference for unexpected server errors. */
+export function errorMessage(e: unknown, fallback = 'Something went wrong. Please try again.'): string {
+  if (e instanceof NetworkError) return e.message
+  if (e instanceof ApiError) return e.status >= 500 && e.requestId ? `${e.message} (ref ${e.requestId})` : e.message
+  return fallback
 }
 
 type Query = Record<string, string | number | boolean | string[] | undefined | null>
@@ -43,6 +64,12 @@ export function buildQuery(query: Query = {}): string {
   return s ? `?${s}` : ''
 }
 
+function toApiError(status: number, data: unknown, statusText: string): ApiError {
+  const body: Partial<ErrorBody> =
+    data && typeof data === 'object' && 'error' in data ? (data as { error: ErrorBody }).error : { message: statusText }
+  return status === 422 ? new ValidationError(status, body) : new ApiError(status, body)
+}
+
 export async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
   let res: Response
   try {
@@ -56,12 +83,7 @@ export async function request<T>(method: string, path: string, body?: unknown): 
   }
 
   if (res.status === 204) return undefined as T
-  const data = await res.json().catch(() => null)
-
+  const data: unknown = await res.json().catch(() => null)
   if (res.ok) return data as T
-  // ASSUMPTION (2): 422 body is { errors: { field: message } }.
-  if (res.status === 422 && data && typeof data.errors === 'object') {
-    throw new ValidationError(data.errors as ValidationErrors)
-  }
-  throw new ApiError(res.status, (data && (data.detail || data.message)) || res.statusText)
+  throw toApiError(res.status, data, res.statusText)
 }

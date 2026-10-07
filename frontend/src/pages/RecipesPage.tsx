@@ -1,15 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
-import { NetworkError } from '../api/client'
+import { errorMessage } from '../api/client'
 import { api } from '../api/endpoints'
-import type { MealType, RecipeSummary } from '../api/types'
+import type { RecipeSummary } from '../api/types'
 import { PageHeader } from '../components/Layout'
 import { Button, Chip } from '../components/ui'
 import { PlusIcon } from '../components/icons'
 import './RecipesPage.css'
-
-// ASSUMPTION (5): default image = emoji per first meal type until photos/icons exist.
-const MEAL_EMOJI: Record<MealType, string> = { breakfast: '🥣', lunch: '🥪', dinner: '🍲', dessert: '🍰' }
 
 const title = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).replace(/-/g, ' ')
 
@@ -17,12 +14,12 @@ function RecipeCard({ recipe }: { recipe: RecipeSummary }) {
   // Up to two chips: dietary labels first (Leaf), then tags (green).
   const chips = [
     ...recipe.dietary.map((d) => ({ key: d, label: title(d), variant: 'dietary' as const })),
-    ...recipe.tags.map((t) => ({ key: t, label: title(t), variant: 'tag' as const })),
+    ...recipe.tags.map((t) => ({ key: t.key, label: t.name, variant: 'tag' as const })),
   ].slice(0, 2)
   return (
-    <Link to={`/recipes/${recipe.id}`} className="recipe-card">
+    <Link to={`/recipes/${recipe.slug}`} className="recipe-card">
       <span className="recipe-card__thumb" aria-hidden="true">
-        {recipe.mealType[0] ? MEAL_EMOJI[recipe.mealType[0]] : '🍽️'}
+        {recipe.imageUrl ? <img src={recipe.imageUrl} alt="" /> : recipe.defaultImage}
       </span>
       <span className="recipe-card__info">
         <span className="recipe-card__title">{recipe.name}</span>
@@ -54,7 +51,7 @@ export function RecipesPage() {
     api
       .listRecipes()
       .then((recipes) => !cancelled && setState({ status: 'ready', recipes }))
-      .catch((e) => !cancelled && setState({ status: 'error', message: e instanceof NetworkError ? e.message : 'Something went wrong loading recipes' }))
+      .catch((e) => !cancelled && setState({ status: 'error', message: errorMessage(e, 'Something went wrong loading recipes') }))
     return () => {
       cancelled = true
     }
@@ -66,7 +63,7 @@ export function RecipesPage() {
       {state.status === 'loading' && <p className="recipes__note">Loading recipes…</p>}
       {state.status === 'error' && (
         <div className="recipes__note" role="alert">
-          <p>{state.message}.</p>
+          <p>{state.message}</p>
           <Button variant="outline" onClick={() => { setState({ status: 'loading' }); setAttempt((a) => a + 1) }}>
             Try again
           </Button>

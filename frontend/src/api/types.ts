@@ -1,55 +1,50 @@
-// Types for the shared Nosh API contract (camelCase JSON).
+// API types come from the backend's OpenAPI contract (generated, never edited by hand):
+//   backend/app/schemas.py -> backend/openapi.json -> npm run gen:api -> schema.gen.ts
+// This file only gives them friendly names, plus a few frontend-only helper types.
+import type { components } from './schema.gen'
 
-export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'dessert'
-export type DietaryLabel = 'vegetarian' | 'vegan' | 'gluten-free' | 'dairy-free'
+type Schemas = components['schemas']
 
-/** `null` unit = counted item (e.g. 2 onions), matching the JSON. */
-export type Unit = string | null
+export type MealType = Schemas['MealType']
+export type DietaryLabel = Schemas['DietaryLabel']
+export type Cuisine = Schemas['Cuisine']
 
-export type RecipeSummary = {
-  id: string
-  name: string
-  cuisine: string
-  serves: number
-  mealType: MealType[]
-  dietary: DietaryLabel[]
-  tags: string[]
-  isCustom: boolean
-  imageUrl: string | null
-}
+export type Unit = Schemas['UnitOut']
+export type Options = Schemas['OptionsOut']
+export type Tag = Schemas['TagOut']
+export type TagInput = Schemas['TagIn']
 
-export type RecipeIngredient = {
-  ingredientId: number
-  name: string
-  /** `null` = "to taste" */
-  quantity: number | null
-  unit: Unit
-  prep: string | null
-}
+export type RecipeSummary = Schemas['RecipeSummary']
+export type RecipeDetail = Schemas['RecipeDetail']
+export type RecipeIngredient = Schemas['IngredientLine']
+export type RecipeIngredientInput = Schemas['IngredientLineIn']
+export type RecipeInput = Schemas['RecipeCreate']
+export type RecipeUsage = Schemas['RecipeUsageOut']
+export type IngredientSuggestion = Schemas['IngredientSuggestion']
 
-export type RecipeDetail = RecipeSummary & {
-  ingredients: RecipeIngredient[]
-  method: string[]
-}
+export type Preferences = Schemas['PreferencesOut']
+export type PreferencesInput = Schemas['PreferencesIn']
+export type Profile = Schemas['ProfileOut']
+export type ProfileInput = Schemas['ProfileIn']
 
-export type RecipeIngredientInput = {
-  name: string
-  quantity: number | null
-  unit: Unit
-  prep: string | null
-}
+export type PlanEntry = Schemas['PlanEntryOut']
+export type PlanDay = Schemas['PlanDayOut']
+export type WeekPlan = Schemas['WeekPlanOut']
+export type PlanEntryInput = Schemas['PlanEntryCreate']
+export type PlanEntryPatch = Schemas['PlanEntryUpdate']
+export type PlannedDays = Schemas['PlanDaysOut']
 
-export type RecipeInput = {
-  name: string
-  cuisine: string
-  serves: number
-  mealType: MealType[]
-  dietary: DietaryLabel[]
-  tags: string[]
-  ingredients: RecipeIngredientInput[]
-  method: string[]
-}
+export type ShoppingItem = Schemas['ShoppingListItemOut']
+export type ShoppingListChanges = Schemas['ShoppingListChangesOut']
+export type ShoppingList = Schemas['ShoppingListOut']
 
+/** Every API error: { error: { code, message, details?, requestId } }. */
+export type ErrorResponse = Schemas['ErrorResponse']
+export type ErrorBody = Schemas['ErrorBody']
+
+// ---------- Frontend-only ----------
+
+/** Query options for GET /api/recipes. */
 export type RecipeFilters = {
   q?: string
   mealType?: MealType[]
@@ -59,61 +54,5 @@ export type RecipeFilters = {
   all?: boolean
 }
 
-// ASSUMPTION (3): GET /api/recipes/{id}/usage returns the number of upcoming planned meals.
-export type RecipeUsage = { upcomingMeals: number }
-
-export type UnitOption = {
-  value: Unit
-  label: string
-  group: 'weight' | 'volume' | 'count' | 'packs'
-}
-
-export type Options = {
-  mealTypes: MealType[]
-  dietaryLabels: DietaryLabel[]
-  cuisines: string[]
-}
-
-export type Tag = { key: string; name: string; isBuiltin: boolean }
-
-// ASSUMPTION (1): GET /api/ingredients?q= exists for type-ahead suggestions.
-export type IngredientSuggestion = { id: number; name: string }
-
-export type Preferences = { dietary: DietaryLabel[] }
-
-export type Profile = { name: string; email: string; householdSize: number | null }
-
-export type PlanEntry = {
-  id: number
-  date: string // YYYY-MM-DD
-  position: number
-  recipeId: string
-  recipeName: string
-  servings: number
-  recipeDeleted: boolean
-}
-
-export type WeekPlan = {
-  weekStart: string // Monday, YYYY-MM-DD
-  days: { date: string; entries: PlanEntry[] }[]
-}
-
-export type PlanEntryInput = { date: string; recipeId: string; servings: number }
-
-export type ShoppingItem = {
-  lineKey: string
-  name: string
-  quantity: number | null
-  unit: Unit
-  fromRecipes: string[]
-  ticked: boolean
-}
-
-export type ShoppingList = {
-  weekStart: string
-  items: ShoppingItem[]
-  changedSinceLastView: { added: number } | null
-}
-
-// ASSUMPTION (2): validation failures come back as HTTP 422 with { errors: { field: message } }.
-export type ValidationErrors = Record<string, string>
+/** Field path (camelCase, e.g. "ingredients.0.unit") -> message to show next to that field. */
+export type FieldErrors = Record<string, string>

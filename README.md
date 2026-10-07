@@ -57,6 +57,12 @@ To run the frontend **without the backend** (sample recipes kept in memory):
 VITE_USE_MOCKS=true npm run dev
 ```
 
+API types are generated from the backend contract (`backend/openapi.json`), never written by hand. After the backend schemas change and the spec is re-exported, regenerate them:
+
+```bash
+npm run gen:api   # writes src/api/schema.gen.ts
+```
+
 #### Phones and older browsers
 
 The production build includes a modern bundle plus a legacy bundle with polyfills (via `@vitejs/plugin-legacy`), so it also runs on older phone browsers. Each browser loads the version it supports.

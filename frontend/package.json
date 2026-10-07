@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "gen:api": "npx --yes -p typescript@5 -p openapi-typescript@7.13.0 openapi-typescript ../backend/openapi.json -o src/api/schema.gen.ts"
   },
   "dependencies": {
     "react": "^19.2.8",
