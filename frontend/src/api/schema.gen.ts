@@ -367,22 +367,22 @@ export interface components {
              * Date
              * @default null
              */
-            date: string | null;
+            date?: string | null;
             /**
              * Position
              * @default null
              */
-            position: number | null;
+            position?: number | null;
             /**
              * Recipeid
              * @default null
              */
-            recipeId: string | null;
+            recipeId?: string | null;
             /**
              * Servings
              * @default null
              */
-            servings: number | null;
+            servings?: number | null;
         };
         /** PreferencesIn */
         PreferencesIn: {
@@ -390,7 +390,7 @@ export interface components {
              * Dietary
              * @default []
              */
-            dietary: components["schemas"]["DietaryLabel"][];
+            dietary?: components["schemas"]["DietaryLabel"][];
         };
         /** PreferencesOut */
         PreferencesOut: {
@@ -425,7 +425,7 @@ export interface components {
              * Dietary
              * @default []
              */
-            dietary: components["schemas"]["DietaryLabel"][];
+            dietary?: components["schemas"]["DietaryLabel"][];
             /** Ingredients */
             ingredients: components["schemas"]["IngredientLineIn"][];
             /** Mealtypes */
@@ -440,7 +440,7 @@ export interface components {
              * Tags
              * @default []
              */
-            tags: string[];
+            tags?: string[];
         };
         /**
          * RecipeDetail

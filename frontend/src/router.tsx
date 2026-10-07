@@ -1,10 +1,12 @@
 import { createBrowserRouter, Navigate } from 'react-router'
 import { Layout } from './components/Layout'
 import { PlaceholderPage } from './pages/PlaceholderPage'
+import { AddMealPage } from './pages/AddMealPage'
 import { AddRecipePage } from './pages/AddRecipePage'
 import { RecipesPage } from './pages/RecipesPage'
 import { DietaryPreferencesPage } from './pages/settings/DietaryPreferencesPage'
 import { SettingsPage } from './pages/settings/SettingsPage'
+import { WeekPage } from './pages/WeekPage'
 
 export const router = createBrowserRouter([
   {
@@ -15,7 +17,8 @@ export const router = createBrowserRouter([
       { path: 'recipes/new', element: <AddRecipePage /> },
       { path: 'recipes/:slug', element: <PlaceholderPage title="Recipe" /> },
       { path: 'recipes/:slug/edit', element: <PlaceholderPage title="Edit recipe" /> },
-      { path: 'week', element: <PlaceholderPage title="This week" /> },
+      { path: 'week', element: <WeekPage /> },
+      { path: 'week/add', element: <AddMealPage /> },
       { path: 'shopping', element: <PlaceholderPage title="Shopping list" /> },
       { path: 'settings', element: <SettingsPage /> },
       { path: 'settings/dietary', element: <DietaryPreferencesPage /> },

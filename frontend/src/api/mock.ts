@@ -10,6 +10,7 @@ import type {
   FieldErrors,
   MealType,
   PlanDay,
+  PlanEntry,
   Preferences,
   Profile,
   RecipeDetail,
@@ -120,6 +121,8 @@ const toDetail = (r: JsonRecipe, isCustom = false, id = fakeUuid()): RecipeDetai
 
 const recipes = new Map<string, RecipeDetail>(SAMPLE.map((r) => [r.id, toDetail(r)]))
 let preferences: Preferences = { dietary: ['vegetarian'] }
+let planEntries: PlanEntry[] = []
+let nextEntryId = 1
 let profile: Profile = { name: 'Sam Jones', email: 'sam.jones@example.com', householdSize: 2 }
 
 const delay = <T>(value: T) => new Promise<T>((resolve) => setTimeout(() => resolve(value), 150))
@@ -241,17 +244,34 @@ export const mockApi: Api = {
     const days: PlanDay[] = Array.from({ length: 7 }, (_, i) => {
       const d = new Date(`${start}T00:00:00`)
       d.setDate(d.getDate() + i)
-      return { date: isoDate(d), entries: [] }
+      const date = isoDate(d)
+      return { date, entries: planEntries.filter((e) => e.date === date).sort((a, b) => a.position - b.position) }
     })
     return delay({ weekStart: start, days })
   },
   addPlanEntry: (input) => {
     const r = [...recipes.values()].find((x) => x.id === input.recipeId)
-    return delay({ id: Date.now(), date: input.date, position: 0, recipeId: input.recipeId, recipeSlug: r?.slug ?? '', recipeName: r?.name ?? '', recipeDeleted: false, servings: input.servings })
+    if (!r) return notFound()
+    const position = planEntries.filter((e) => e.date === input.date).length
+    const entry = { id: nextEntryId++, date: input.date, position, recipeId: r.id, recipeSlug: r.slug, recipeName: r.name, recipeDeleted: false, servings: input.servings }
+    planEntries.push(entry)
+    return delay(entry)
   },
-  updatePlanEntry: () => Promise.reject(new ApiError(501, { code: 'not_implemented', message: 'Not available in mock mode.', requestId: 'mock' })),
-  deletePlanEntry: () => delay(undefined),
-  getPlannedDays: (month) => delay({ month, dates: [] }),
+  updatePlanEntry: (id, patch) => {
+    const entry = planEntries.find((e) => e.id === id)
+    if (!entry) return Promise.reject(new ApiError(404, { code: 'plan_entry_not_found', message: "We couldn't find that meal in your plan.", requestId: 'mock' }))
+    if (patch.servings) entry.servings = patch.servings
+    if (patch.date && patch.date !== entry.date) {
+      entry.position = planEntries.filter((e) => e.date === patch.date).length
+      entry.date = patch.date
+    }
+    return delay({ ...entry })
+  },
+  deletePlanEntry: (id) => {
+    planEntries = planEntries.filter((e) => e.id !== id)
+    return delay(undefined)
+  },
+  getPlannedDays: (month) => delay({ month, dates: [...new Set(planEntries.map((e) => e.date).filter((d) => d.startsWith(month)))].sort() }),
 
   getShoppingList: (week) => delay({ weekStart: mondayOf(week ? new Date(`${week}T00:00:00`) : new Date()), items: [], changes: null }),
   setTicked: () => Promise.reject(new ApiError(501, { code: 'not_implemented', message: 'Not available in mock mode.', requestId: 'mock' })),
