@@ -4,9 +4,11 @@ import { errorMessage } from '../../api/client'
 import { api } from '../../api/endpoints'
 import type { RecipeDetail } from '../../api/types'
 import { amountLabel } from '../../lib/amounts'
-import { addDays, dayLabel, mondayOf, parseIsoDate, today } from '../../lib/dates'
+import { addDays, dayLabel, mondayOf, parseIsoDate, relativeWeekLabel, today, weekRangeLabel } from '../../lib/dates'
 import type { IsoDate } from '../../lib/dates'
+import { ChevronLeftIcon, ChevronRightIcon } from '../icons'
 import { BottomSheet, Button, Stepper } from '../ui'
+import '../week/Week.css'
 
 const PREVIEW_LINES = 4
 
@@ -18,11 +20,22 @@ type Props = {
 
 type Preview = { status: 'loading' } | { status: 'error' } | { status: 'ready'; recipe: RecipeDetail }
 
-/** Pick a day this week and how many people it's for, see what you'll need, then add it to the plan. */
+/** Pick a day (this week or a later one) and how many people it's for, see what you'll need, then add it. */
 export function AddToWeekSheet({ recipe, open, onClose }: Props) {
   const now = today()
-  const days = Array.from({ length: 7 }, (_, i) => addDays(mondayOf(now), i))
+  const thisWeek = mondayOf(now)
+  const [weekMonday, setWeekMonday] = useState<IsoDate>(thisWeek)
+  const days = Array.from({ length: 7 }, (_, i) => addDays(weekMonday, i))
   const [date, setDate] = useState<IsoDate>(now)
+
+  /** Planning ahead only: this week or later. Selects today in this week, otherwise that week's Monday. */
+  const changeWeek = (weeks: number) => {
+    const next = addDays(weekMonday, weeks * 7)
+    if (next < thisWeek) return
+    setWeekMonday(next)
+    setDate(next === thisWeek ? now : next)
+  }
+  const relative = relativeWeekLabel(weekMonday, now)
   const [servings, setServings] = useState(recipe.serves)
   const [preview, setPreview] = useState<Preview>({ status: 'loading' })
   const [saving, setSaving] = useState(false)
@@ -89,6 +102,24 @@ export function AddToWeekSheet({ recipe, open, onClose }: Props) {
         <>
           <fieldset className="add-week__group">
             <legend className="add-week__label">Day</legend>
+            <div className="week-nav week-nav--compact">
+              <button
+                type="button"
+                className="week-nav__arrow"
+                aria-label="Previous week"
+                disabled={weekMonday <= thisWeek}
+                onClick={() => changeWeek(-1)}
+              >
+                <ChevronLeftIcon size={22} />
+              </button>
+              <span className="week-nav__range" aria-live="polite">
+                <span className="week-nav__dates">{weekRangeLabel(weekMonday)}</span>
+                {relative && <span className="week-nav__relative">{relative}</span>}
+              </span>
+              <button type="button" className="week-nav__arrow" aria-label="Next week" onClick={() => changeWeek(1)}>
+                <ChevronRightIcon size={22} />
+              </button>
+            </div>
             <div className="day-picker">
               {days.map((d) => {
                 const date_ = parseIsoDate(d)
