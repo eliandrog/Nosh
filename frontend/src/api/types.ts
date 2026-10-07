@@ -15,6 +15,8 @@ export type Tag = Schemas['TagOut']
 export type TagInput = Schemas['TagIn']
 
 export type RecipeSummary = Schemas['RecipeSummary']
+/** One page of GET /api/recipes: { items, total, page, pageSize, totalPages }. */
+export type RecipePage = Schemas['RecipePage']
 export type RecipeDetail = Schemas['RecipeDetail']
 export type RecipeIngredient = Schemas['IngredientLine']
 export type RecipeIngredientInput = Schemas['IngredientLineIn']
@@ -52,6 +54,10 @@ export type RecipeFilters = {
   tag?: string[]
   /** true = ignore saved dietary preferences */
   all?: boolean
+  /** 1-based; defaults to 1 on the server */
+  page?: number
+  /** 1–50; defaults to 20 on the server */
+  pageSize?: number
 }
 
 /** Field path (camelCase, e.g. "ingredients.0.unit") -> message to show next to that field. */

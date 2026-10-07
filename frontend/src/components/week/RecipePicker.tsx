@@ -14,6 +14,9 @@ type RecipePickerProps = {
   onPick: (recipe: RecipeSummary) => void
 }
 
+// Enough choices to scroll through; searching narrows it down.
+const PICKER_PAGE_SIZE = 20
+
 /** Search plus results (saved dietary preferences apply), each a 44px button that picks the recipe. */
 export function RecipePicker({ excludeId, disabled = false, onPick }: RecipePickerProps) {
   const [text, setText] = useState('')
@@ -24,8 +27,8 @@ export function RecipePicker({ excludeId, disabled = false, onPick }: RecipePick
   useEffect(() => {
     let cancelled = false // ignores replies to older searches
     api
-      .listRecipes({ q: query || undefined })
-      .then((recipes) => !cancelled && setResults({ status: 'ready', recipes }))
+      .listRecipes({ q: query || undefined, pageSize: PICKER_PAGE_SIZE })
+      .then((page) => !cancelled && setResults({ status: 'ready', recipes: page.items }))
       .catch((e) => !cancelled && setResults({ status: 'error', message: errorMessage(e, "Couldn't load recipes") }))
     return () => {
       cancelled = true

@@ -101,7 +101,8 @@ describe('WeekPage', () => {
     const soup = entry(5, WED, 0, 'Tomato Soup', 3)
     const dahl = { ...soup, recipeId: 'id-lentil-dahl', recipeSlug: 'lentil-dahl', recipeName: 'Lentil Dahl' }
     mocked.getWeekPlan.mockResolvedValueOnce(week(MON, [soup])).mockResolvedValue(week(MON, [dahl]))
-    mocked.listRecipes.mockResolvedValue([summary('id-tomato-soup', 'Tomato Soup'), summary('id-lentil-dahl', 'Lentil Dahl')])
+    const items = [summary('id-tomato-soup', 'Tomato Soup'), summary('id-lentil-dahl', 'Lentil Dahl')]
+    mocked.listRecipes.mockResolvedValue({ items, total: 2, page: 1, pageSize: 20, totalPages: 1 })
     mocked.updatePlanEntry.mockResolvedValue(dahl)
     const { user } = renderWeek()
 
@@ -110,6 +111,7 @@ describe('WeekPage', () => {
     const picker = screen.getByRole('dialog', { name: 'Swap Tomato Soup' })
     expect(within(picker).queryByRole('button', { name: /Tomato Soup/ })).not.toBeInTheDocument() // can't swap for itself
 
+    expect(mocked.listRecipes).toHaveBeenCalledWith({ q: undefined, pageSize: 20 })
     await user.click(await within(picker).findByRole('button', { name: /Lentil Dahl/ }))
     expect(mocked.updatePlanEntry).toHaveBeenCalledWith(5, { recipeId: 'id-lentil-dahl' }) // date/position/servings untouched
     expect(await screen.findByRole('button', { name: /Lentil Dahl/ })).toBeInTheDocument() // week reloaded

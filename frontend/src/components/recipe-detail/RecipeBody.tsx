@@ -22,9 +22,13 @@ export function RecipeLabels({ recipe }: { recipe: RecipeDetail }) {
   )
 }
 
-export function IngredientList({ recipe }: { recipe: RecipeDetail }) {
+export function IngredientList({ recipe, updating = false }: { recipe: RecipeDetail; updating?: boolean }) {
   return (
-    <section className="recipe-card-block" aria-labelledby="ingredients-title">
+    <section
+      className={`recipe-card-block${updating ? ' recipe-card-block--updating' : ''}`}
+      aria-labelledby="ingredients-title"
+      aria-busy={updating}
+    >
       <h2 id="ingredients-title" className="recipe-card-block__title">
         Ingredients
       </h2>

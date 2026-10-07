@@ -8,6 +8,7 @@ import { RecipeDetailPage } from './pages/RecipeDetailPage'
 import { RecipesPage } from './pages/RecipesPage'
 import { DietaryPreferencesPage } from './pages/settings/DietaryPreferencesPage'
 import { SettingsPage } from './pages/settings/SettingsPage'
+import { ShoppingPage } from './pages/ShoppingPage'
 import { WeekPage } from './pages/WeekPage'
 
 export const router = createBrowserRouter([
@@ -21,7 +22,7 @@ export const router = createBrowserRouter([
       { path: 'recipes/:slug/edit', element: <EditRecipePage /> },
       { path: 'week', element: <WeekPage /> },
       { path: 'week/add', element: <AddMealPage /> },
-      { path: 'shopping', element: <PlaceholderPage title="Shopping list" /> },
+      { path: 'shopping', element: <ShoppingPage /> },
       { path: 'settings', element: <SettingsPage /> },
       { path: 'settings/dietary', element: <DietaryPreferencesPage /> },
       { path: '*', element: <PlaceholderPage title="Page not found" /> },

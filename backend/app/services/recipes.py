@@ -10,6 +10,7 @@ Slugs are URL-friendly versions of the recipe name and are never reused
 """
 
 import datetime as dt
+import math
 import uuid
 from collections.abc import Sequence
 
@@ -23,11 +24,16 @@ from app.repositories import plan as plan_repo
 from app.repositories import recipes as recipe_repo
 from app.repositories import settings as settings_repo
 from app.repositories.recipes import RecipeQuery
-from app.schemas import IngredientLine, RecipeCreate, RecipeDetail, RecipeSummary, RecipeUsageOut, TagOut
+from app.schemas import IngredientLine, RecipeCreate, RecipeDetail, RecipePage, RecipeSummary, RecipeUsageOut, TagOut
 from app.services.ingredients import merge_key
+from app.services import shopping as shopping_service
 from app.services.scaling import scale_quantity
 from app.services.slugs import slugify
 from app.services.tags import get_or_create_tags
+
+
+DEFAULT_PAGE_SIZE = 20
+MAX_PAGE_SIZE = 50
 
 
 class DuplicateRecipeName(ConflictError):
@@ -131,12 +137,22 @@ def list_recipes(
     dietary: Sequence[DietaryLabel] | None = None,
     tag_keys: Sequence[str] = (),
     include_all: bool = False,
-) -> list[RecipeSummary]:
+    page: int = 1,
+    page_size: int = DEFAULT_PAGE_SIZE,
+) -> RecipePage:
     """Dietary defaults to the saved preferences unless given explicitly or include_all is set."""
     if dietary is None:
         dietary = [] if include_all else settings_repo.get_dietary(session)
     query = RecipeQuery(q=q or None, meal_types=tuple(meal_types), dietary=tuple(dietary), tag_keys=tuple(tag_keys))
-    return [to_summary(r) for r in recipe_repo.list_summaries(session, query)]
+    total = recipe_repo.count_summaries(session, query)
+    recipes = recipe_repo.list_summaries(session, query, limit=page_size, offset=(page - 1) * page_size)
+    return RecipePage(
+        items=[to_summary(r) for r in recipes],
+        total=total,
+        page=page,
+        page_size=page_size,
+        total_pages=max(1, math.ceil(total / page_size)),
+    )
 
 
 def _get_detail_model(session: Session, slug: str) -> Recipe:
@@ -219,7 +235,7 @@ def create_recipe(session: Session, data: RecipeCreate) -> RecipeDetail:
     return get_recipe_detail(session, recipe.slug)
 
 
-def update_recipe(session: Session, slug: str, data: RecipeCreate) -> RecipeDetail:
+def update_recipe(session: Session, slug: str, data: RecipeCreate, today: dt.date) -> RecipeDetail:
     recipe = _get_detail_model(session, slug)
     if not recipe.is_custom:
         raise RecipeReadOnly("Built-in Nosh recipes can't be edited.")
@@ -229,8 +245,9 @@ def update_recipe(session: Session, slug: str, data: RecipeCreate) -> RecipeDeta
     recipe.ingredients, recipe.method_steps, recipe.meal_types, recipe.dietary, recipe.tags = [], [], [], [], []
     session.flush()
     _apply(session, recipe, data, name, steps)
+    session.flush()
+    shopping_service.rebuild_weeks_using_recipe(session, recipe.id, today)
     session.commit()
-    # TODO(shopping-list branch): rebuild current/future weeks' shopping lists that use this recipe.
     return get_recipe_detail(session, recipe.slug)
 
 
@@ -241,5 +258,6 @@ def delete_recipe(session: Session, slug: str, today: dt.date) -> None:
         raise RecipeReadOnly("Built-in Nosh recipes can't be deleted.")
     recipe.deleted = True
     plan_repo.delete_from(session, recipe.id, today)
+    session.flush()
+    shopping_service.rebuild_weeks_using_recipe(session, recipe.id, today)
     session.commit()
-    # TODO(shopping-list branch): rebuild current/future weeks' shopping lists.

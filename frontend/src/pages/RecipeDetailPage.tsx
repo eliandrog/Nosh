@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { ApiError, errorMessage } from '../api/client'
 import { api } from '../api/endpoints'
 import type { RecipeDetail } from '../api/types'
@@ -7,6 +7,7 @@ import { AddToWeekSheet } from '../components/recipe-detail/AddToWeekSheet'
 import { DeleteRecipeSheet } from '../components/recipe-detail/DeleteRecipeSheet'
 import { IngredientList, MethodList, RecipeLabels } from '../components/recipe-detail/RecipeBody'
 import { RecipeHeader } from '../components/recipe-detail/RecipeHeader'
+import { MAX_SERVINGS, ServingsControl } from '../components/recipe-detail/ServingsControl'
 import { EditIcon, PlusIcon, TrashIcon } from '../components/icons'
 import { Button } from '../components/ui'
 import '../components/recipe-detail/RecipeDetail.css'
@@ -19,17 +20,45 @@ type State =
 
 type Sheet = 'week' | 'delete' | null
 
+/** `?servings=N` from the URL, if it's a whole number in range. */
+function parseServings(value: string | null): number | null {
+  const n = Number(value)
+  return Number.isInteger(n) && n >= 1 && n <= MAX_SERVINGS ? n : null
+}
+
 export function RecipeDetailPage() {
   const { slug = '' } = useParams()
   const navigate = useNavigate()
   const [state, setState] = useState<State>({ status: 'loading' })
   const [attempt, setAttempt] = useState(0)
   const [sheet, setSheet] = useState<Sheet>(null)
+  const [params, setParams] = useSearchParams()
+  const urlServings = parseServings(params.get('servings'))
+  // Household size from Settings: undefined while loading, null when not set.
+  const [household, setHousehold] = useState<number | null | undefined>(undefined)
+  const needsDefault = urlServings === null
 
   useEffect(() => {
+    if (!needsDefault) return
     let cancelled = false
     api
-      .getRecipe(slug)
+      .getProfile()
+      .then((p) => !cancelled && setHousehold(p.householdSize ?? null))
+      .catch(() => !cancelled && setHousehold(null))
+    return () => {
+      cancelled = true
+    }
+  }, [needsDefault])
+
+  // Servings: from the URL, else the household size, else the recipe's own serves (undefined).
+  const waitingForDefault = needsDefault && household === undefined
+  const requested = urlServings ?? household ?? undefined
+
+  useEffect(() => {
+    if (waitingForDefault) return
+    let cancelled = false // replies to older servings choices are ignored
+    api
+      .getRecipe(slug, requested)
       .then((recipe) => !cancelled && setState({ status: 'ready', recipe }))
       .catch((e) => {
         if (cancelled) return
@@ -39,7 +68,7 @@ export function RecipeDetailPage() {
     return () => {
       cancelled = true
     }
-  }, [slug, attempt])
+  }, [slug, requested, waitingForDefault, attempt])
 
   if (state.status === 'loading') return <p className="recipe-page__note">Loading recipe…</p>
   if (state.status === 'not-found') {
@@ -65,6 +94,17 @@ export function RecipeDetailPage() {
   }
 
   const { recipe } = state
+  const servings = requested ?? recipe.serves
+  const scaling = recipe.servings !== servings // previous amounts stay visible while new ones load
+  const changeServings = (value: number) =>
+    setParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        next.set('servings', String(value))
+        return next
+      },
+      { replace: true },
+    )
   return (
     <article className="recipe-page">
       <RecipeHeader recipe={recipe} />
@@ -85,11 +125,12 @@ export function RecipeDetailPage() {
         ) : (
           <p className="recipe-page__builtin">Built-in Nosh recipes can’t be edited or deleted.</p>
         )}
-        <IngredientList recipe={recipe} />
+        <ServingsControl servings={servings} serves={recipe.serves} scaling={scaling} onChange={changeServings} />
+        <IngredientList recipe={recipe} updating={scaling} />
         <MethodList recipe={recipe} />
       </div>
 
-      {sheet === 'week' && <AddToWeekSheet recipe={recipe} open onClose={() => setSheet(null)} />}
+      {sheet === 'week' && <AddToWeekSheet recipe={recipe} open initialServings={servings} onClose={() => setSheet(null)} />}
       {sheet === 'delete' && (
         <DeleteRecipeSheet recipe={recipe} open onClose={() => setSheet(null)} onDeleted={() => navigate('/recipes')} />
       )}

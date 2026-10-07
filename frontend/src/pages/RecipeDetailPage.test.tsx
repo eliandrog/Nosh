@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMemoryRouter, RouterProvider, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -52,17 +52,31 @@ function Where() {
   return <p>at {useLocation().pathname}</p>
 }
 
-function renderPage(slug = 'lentil-dahl') {
+function renderPage(slug = 'lentil-dahl', search = '') {
   const router = createMemoryRouter(
     [
       { path: '/recipes/:slug', element: <RecipeDetailPage /> },
       { path: '/recipes', element: <Where /> },
     ],
-    { initialEntries: [`/recipes/${slug}`] },
+    { initialEntries: [`/recipes/${slug}${search}`] },
   )
   render(<RouterProvider router={router} />)
+  lastRouter = router
   return userEvent.setup()
 }
+
+let lastRouter: ReturnType<typeof createMemoryRouter>
+
+/** Promise we resolve by hand, to control the order API replies arrive in. */
+function deferred<T>() {
+  let resolve!: (value: T) => void
+  const promise = new Promise<T>((r) => (resolve = r))
+  return { promise, resolve }
+}
+
+const ingredientsRegion = () => within(screen.getByRole('region', { name: 'Ingredients' }))
+const loaded = () => screen.findByRole('region', { name: 'Ingredients' })
+const servingsStepper = () => within(screen.getByRole('group', { name: 'Servings' }))
 
 beforeEach(() => {
   vi.resetAllMocks()
@@ -72,6 +86,7 @@ beforeEach(() => {
 
 describe('RecipeDetailPage', () => {
   it('shows facts, labels, readable amounts and the method', async () => {
+    mocked.getProfile.mockResolvedValue({ name: null, email: null, householdSize: null }) // recipe's own serves
     renderPage()
 
     expect(await screen.findByRole('heading', { name: 'Lentil Dahl' })).toBeInTheDocument()
@@ -143,5 +158,62 @@ describe('RecipeDetailPage', () => {
     renderPage('gone')
     expect(await screen.findByRole('heading', { name: 'We couldn’t find that recipe' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Back to recipes' })).toHaveAttribute('href', '/recipes')
+  })
+})
+
+describe('RecipeDetailPage portion scaling', () => {
+  it('starts at the household size and scales the amounts', async () => {
+    renderPage()
+    await loaded()
+
+    expect(await ingredientsRegion().findByText('125 g')).toBeInTheDocument()
+    expect(ingredientsRegion().getByText('½ tin')).toBeInTheDocument()
+    expect(servingsStepper().getByText('2')).toBeInTheDocument()
+    expect(screen.getByText('Scaled from serves 4')).toBeInTheDocument()
+    expect(mocked.getRecipe).toHaveBeenCalledWith('lentil-dahl', 2)
+  })
+
+  it('uses servings from the URL without asking for the household size', async () => {
+    renderPage('lentil-dahl', '?servings=6')
+    await loaded()
+
+    expect(await ingredientsRegion().findByText('375 g')).toBeInTheDocument()
+    expect(mocked.getProfile).not.toHaveBeenCalled()
+    expect(mocked.getRecipe).toHaveBeenCalledWith('lentil-dahl', 6)
+  })
+
+  it('refetches when servings change, keeps the URL in step and ignores slower older replies', async () => {
+    mocked.getProfile.mockResolvedValue({ name: null, email: null, householdSize: null })
+    const five = deferred<RecipeDetail>()
+    const six = deferred<RecipeDetail>()
+    mocked.getRecipe.mockImplementation(async (_slug, servings) =>
+      servings === 5 ? five.promise : servings === 6 ? six.promise : DAHL,
+    )
+    const user = renderPage()
+    await loaded()
+    expect(await ingredientsRegion().findByText('250 g')).toBeInTheDocument()
+
+    await user.click(servingsStepper().getByRole('button', { name: 'More servings' }))
+    await user.click(servingsStepper().getByRole('button', { name: 'More servings' }))
+    expect(lastRouter.state.location.search).toBe('?servings=6')
+    expect(screen.getByText('Updating amounts…')).toBeInTheDocument()
+    expect(ingredientsRegion().getByText('250 g')).toBeInTheDocument() // old amounts stay while loading
+
+    await act(async () => six.resolve(scaled(6)))
+    await act(async () => five.resolve(scaled(5))) // older choice answers last
+    expect(ingredientsRegion().getByText('375 g')).toBeInTheDocument()
+    expect(ingredientsRegion().queryByText('312.5 g')).not.toBeInTheDocument()
+    expect(screen.getByText('Scaled from serves 4')).toBeInTheDocument()
+  })
+
+  it('opens Add to my week with the servings chosen on the page', async () => {
+    const user = renderPage('lentil-dahl', '?servings=3')
+    await loaded()
+    expect(servingsStepper().getByText('3')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /Add to my week/ }))
+    const sheet = within(await screen.findByRole('dialog'))
+    expect(within(sheet.getByRole('group', { name: 'Servings' })).getByText('3')).toBeInTheDocument()
+    expect(mocked.getProfile).not.toHaveBeenCalled() // no household default overriding the choice
   })
 })

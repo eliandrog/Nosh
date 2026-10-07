@@ -34,7 +34,7 @@ export function AddMealPage() {
     let cancelled = false
     api
       .listRecipes({ q: query || undefined })
-      .then((recipes) => !cancelled && setResults({ status: 'ready', recipes }))
+      .then((page) => !cancelled && setResults({ status: 'ready', recipes: page.items }))
       .catch((e) => !cancelled && setResults({ status: 'error', message: errorMessage(e, "Couldn't load recipes") }))
     return () => {
       cancelled = true

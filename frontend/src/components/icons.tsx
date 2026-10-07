@@ -89,6 +89,18 @@ export const CloseIcon = (p: IconProps) => (
   </Svg>
 )
 
+export const CheckIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="m5 12 5 5 9-10" />
+  </Svg>
+)
+
+export const RefreshIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7" />
+  </Svg>
+)
+
 export const SearchIcon = (p: IconProps) => (
   <Svg {...p}>
     <circle cx="11" cy="11" r="7" />

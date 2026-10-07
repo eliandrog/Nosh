@@ -16,12 +16,14 @@ type Props = {
   recipe: RecipeDetail
   open: boolean
   onClose: () => void
+  /** Servings already chosen on the recipe page; skips the household-size default. */
+  initialServings?: number
 }
 
 type Preview = { status: 'loading' } | { status: 'error' } | { status: 'ready'; recipe: RecipeDetail }
 
 /** Pick a day (this week or a later one) and how many people it's for, see what you'll need, then add it. */
-export function AddToWeekSheet({ recipe, open, onClose }: Props) {
+export function AddToWeekSheet({ recipe, open, onClose, initialServings }: Props) {
   const now = today()
   const thisWeek = mondayOf(now)
   const [weekMonday, setWeekMonday] = useState<IsoDate>(thisWeek)
@@ -36,7 +38,7 @@ export function AddToWeekSheet({ recipe, open, onClose }: Props) {
     setDate(next === thisWeek ? now : next)
   }
   const relative = relativeWeekLabel(weekMonday, now)
-  const [servings, setServings] = useState(recipe.serves)
+  const [servings, setServings] = useState(initialServings ?? recipe.serves)
   const [preview, setPreview] = useState<Preview>({ status: 'loading' })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string>()
@@ -44,7 +46,7 @@ export function AddToWeekSheet({ recipe, open, onClose }: Props) {
 
   // Default servings: the household size from Settings, else the recipe's own serves.
   useEffect(() => {
-    if (!open) return
+    if (!open || initialServings) return
     let cancelled = false
     api
       .getProfile()
@@ -53,7 +55,7 @@ export function AddToWeekSheet({ recipe, open, onClose }: Props) {
     return () => {
       cancelled = true
     }
-  }, [open])
+  }, [open, initialServings])
 
   // Amounts scaled by the API for the chosen servings; replies to older choices are ignored.
   useEffect(() => {

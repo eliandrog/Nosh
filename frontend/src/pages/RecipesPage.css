@@ -11,16 +11,42 @@
   color: var(--text-muted);
 }
 
-.recipes__add {
-  margin-top: 16px;
+/* Room at the bottom so the last card and the page controls aren't hidden behind the sticky button. */
+.recipes {
+  padding-bottom: calc(var(--tap) + 24px);
+}
+
+/* Sticky "Add your own recipe": fixed just above the tab bar, respecting the phone's safe area. */
+.recipes__sticky-add {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--tab-bar-height) + env(safe-area-inset-bottom, 0px));
+  z-index: 9;
+  padding: 8px 16px;
+  background: var(--surface);
+  box-shadow: 0 -4px 12px rgba(46, 55, 62, 0.06);
+}
+
+.recipes__sticky-add .btn {
   text-decoration: none;
+}
+
+/* Same phone-width strip as the tab bar on larger screens. */
+@media (min-width: 600px) {
+  .recipes__sticky-add {
+    left: 50%;
+    right: auto;
+    width: 560px;
+    transform: translateX(-50%);
+  }
 }
 
 .recipe-card {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px;
+  padding: 10px 12px;
   background: var(--white);
   border-radius: var(--radius-lg);
   box-shadow: 0 2px 8px rgba(46, 55, 62, 0.08);
@@ -29,15 +55,15 @@
 }
 
 .recipe-card__thumb {
-  width: 72px;
-  height: 72px;
+  width: 56px;
+  height: 56px;
   flex-shrink: 0;
   border-radius: 12px;
   background: var(--nosh-green-tint);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32px;
+  font-size: 26px;
 }
 
 .recipe-card__info {
