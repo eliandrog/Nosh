@@ -297,7 +297,7 @@
             "type": "string"
           },
           "servings": {
-            "minimum": 1,
+            "minimum": 1.0,
             "title": "Servings",
             "type": "integer"
           }
@@ -373,20 +373,18 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Date"
           },
           "position": {
             "anyOf": [
               {
-                "minimum": 0,
+                "minimum": 0.0,
                 "type": "integer"
               },
               {
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Position"
           },
           "recipeId": {
@@ -399,20 +397,18 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Recipeid"
           },
           "servings": {
             "anyOf": [
               {
-                "minimum": 1,
+                "minimum": 1.0,
                 "type": "integer"
               },
               {
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Servings"
           }
         },
@@ -1138,6 +1134,288 @@
         ]
       }
     },
+    "/api/plan": {
+      "get": {
+        "description": "Monday to Sunday with each day's meals in order. `week` can be any date in the week; defaults to today.",
+        "operationId": "get_week",
+        "parameters": [
+          {
+            "description": "Any date in the week (YYYY-MM-DD)",
+            "in": "query",
+            "name": "week",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Any date in the week (YYYY-MM-DD)",
+              "title": "Week"
+            }
+          },
+          {
+            "description": "The user's local date (YYYY-MM-DD). Defaults to the server's local date.",
+            "in": "query",
+            "name": "today",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The user's local date (YYYY-MM-DD). Defaults to the server's local date.",
+              "title": "Today"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeekPlanOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error: `details.fields` maps each field to a message"
+          }
+        },
+        "summary": "Get a week's plan",
+        "tags": [
+          "Week plan"
+        ]
+      }
+    },
+    "/api/plan/days": {
+      "get": {
+        "description": "For the calendar picker's dots.",
+        "operationId": "planned_days",
+        "parameters": [
+          {
+            "description": "YYYY-MM",
+            "in": "query",
+            "name": "month",
+            "required": true,
+            "schema": {
+              "description": "YYYY-MM",
+              "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+              "title": "Month",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanDaysOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error: `details.fields` maps each field to a message"
+          }
+        },
+        "summary": "Days with meals in a month",
+        "tags": [
+          "Week plan"
+        ]
+      }
+    },
+    "/api/plan/entries": {
+      "post": {
+        "description": "The meal goes last on that day. Unlimited meals per day.",
+        "operationId": "add_entry",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanEntryCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanEntryOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error: `details.fields` maps each field to a message"
+          }
+        },
+        "summary": "Add a meal to a day",
+        "tags": [
+          "Week plan"
+        ]
+      }
+    },
+    "/api/plan/entries/{entry_id}": {
+      "delete": {
+        "operationId": "delete_entry",
+        "parameters": [
+          {
+            "description": "Plan entry id",
+            "in": "path",
+            "name": "entry_id",
+            "required": true,
+            "schema": {
+              "description": "Plan entry id",
+              "minimum": 1,
+              "title": "Entry Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error: `details.fields` maps each field to a message"
+          }
+        },
+        "summary": "Remove a meal from the plan",
+        "tags": [
+          "Week plan"
+        ]
+      },
+      "patch": {
+        "description": "Change servings, swap the recipe, move it to another day (goes last there) or reorder it within its day.",
+        "operationId": "update_entry",
+        "parameters": [
+          {
+            "description": "Plan entry id",
+            "in": "path",
+            "name": "entry_id",
+            "required": true,
+            "schema": {
+              "description": "Plan entry id",
+              "minimum": 1,
+              "title": "Entry Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanEntryUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanEntryOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error: `details.fields` maps each field to a message"
+          }
+        },
+        "summary": "Change a planned meal",
+        "tags": [
+          "Week plan"
+        ]
+      }
+    },
     "/api/preferences": {
       "get": {
         "operationId": "get_preferences",
@@ -1835,6 +2113,10 @@
     {
       "description": "Browse, search, filter, create, edit and delete recipes.",
       "name": "Recipes"
+    },
+    {
+      "description": "Meals planned per day: real dates, any number of meals a day, servings per meal.",
+      "name": "Week plan"
     },
     {
       "description": "Fixed lists, units, tags and ingredient suggestions for forms and filters.",

@@ -143,6 +143,10 @@ class PlanEntry(SQLModel, table=True):
     recipe_id: uuid.UUID = Field(foreign_key="recipe.id", index=True)
     servings: int = 1
 
+    recipe: Recipe = Relationship()
+
+    recipe: Recipe = Relationship()
+
 
 class ShoppingListItem(SQLModel, table=True):
     """A stored line of a week's shopping list.
