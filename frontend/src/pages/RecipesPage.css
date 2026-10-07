@@ -63,3 +63,18 @@
   flex-wrap: wrap;
   gap: 6px;
 }
+
+.recipes__search {
+  margin-bottom: 12px;
+}
+
+.recipes__count {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.recipes__list--stale {
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
