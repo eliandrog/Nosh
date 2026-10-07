@@ -1,0 +1,282 @@
+.settings__note {
+  color: var(--text-muted);
+}
+
+/* Profile card */
+.profile-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  margin-bottom: 20px;
+  background: var(--white);
+  border-radius: var(--radius-lg);
+}
+.profile-card__avatar {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  background: var(--nosh-green);
+  color: var(--charcoal);
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 18px;
+}
+.profile-card__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.profile-card__name {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 17px;
+}
+.profile-card__email {
+  font-size: 13px;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+/* Groups and rows */
+.settings-group {
+  margin-bottom: 20px;
+}
+.settings-group__title {
+  margin: 0 0 8px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.settings-group__card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 52px;
+  padding: 0 10px 0 14px;
+  border: 0;
+  background: transparent;
+  color: var(--charcoal);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+}
+.settings-row + .settings-row {
+  border-top: 1px solid var(--divider);
+}
+.settings-row--action {
+  cursor: pointer;
+}
+.settings-row__label {
+  flex: 1;
+  font-weight: 700;
+  font-size: 15px;
+}
+.settings-row__value {
+  color: var(--text-muted);
+  font-size: 14px;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.settings-row__placeholder {
+  font-style: italic;
+}
+.settings-row__chevron {
+  color: var(--text-disabled);
+  flex-shrink: 0;
+}
+
+/* Profile editor (bottom sheet) */
+.profile-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.profile-editor__field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.profile-editor__label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.profile-editor__hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.profile-editor__actions {
+  display: flex;
+  gap: 10px;
+}
+.profile-editor__actions > * {
+  flex: 1;
+}
+.settings-input {
+  min-height: var(--tap);
+  padding: 0 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  font: inherit;
+  font-size: 16px; /* stops iOS zooming in on focus */
+  color: var(--charcoal);
+}
+.settings-input:focus {
+  outline: none;
+  border-color: var(--deep-teal);
+}
+.settings-input[aria-invalid='true'] {
+  border: 2px solid var(--flame-coral);
+}
+
+/* Dietary preferences */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: var(--tap);
+  margin-bottom: 4px;
+  color: var(--charcoal);
+  font-weight: 700;
+  text-decoration: none;
+}
+.switch-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 60px;
+  padding: 10px 14px;
+  border: 0;
+  background: transparent;
+  color: var(--charcoal);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.switch-row + .switch-row {
+  border-top: 1px solid var(--divider);
+}
+.switch-row:disabled {
+  cursor: progress;
+}
+.switch-row__text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.switch-row__name {
+  font-weight: 700;
+  font-size: 15px;
+}
+.switch-row__description {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.switch {
+  width: 48px;
+  height: 28px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  padding: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--cloud-grey);
+  transition: background 0.15s;
+}
+.switch--on {
+  background: var(--deep-teal);
+  justify-content: flex-end;
+}
+.switch__knob {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-pill);
+  background: var(--white);
+}
+
+/* Notices: coral icon, Charcoal text (coral text fails AA) */
+.settings-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: var(--coral-tint);
+  color: var(--charcoal);
+  font-size: 13px;
+}
+.settings-notice--error {
+  border: 1px solid var(--flame-coral);
+  font-weight: 700;
+}
+.settings-notice__icon {
+  color: var(--flame-coral);
+  flex-shrink: 0;
+}
+.suit-summary {
+  padding: 14px;
+  border-radius: var(--radius-lg);
+  background: var(--charcoal);
+  color: var(--white);
+}
+.suit-summary__title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 17px;
+}
+
+/* About Nosh: white card, stacked lockup, >= 36px clear space around the logo */
+.about-nosh {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 36px;
+  padding: 36px;
+  margin-bottom: 20px;
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+.about-nosh__lockup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.about-nosh__mark,
+.about-nosh__wordmark {
+  height: auto; /* keep the original aspect ratio: never stretch the logo */
+  max-width: 100%;
+}
+.about-nosh__mark {
+  width: 108px;
+}
+.about-nosh__wordmark {
+  width: 184px;
+}
+.about-nosh__slogan {
+  margin: 0;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--text-muted);
+}
